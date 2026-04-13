@@ -1,0 +1,137 @@
+ C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system> streamlit run dashboard/app.py                       
+                           
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.0.101:8501
+
+2026-04-13 19:42:06.639 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-04-13 19:42:08.570 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-04-13 19:42:08.598 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 369, in <module>
+    st.dataframe(df.describe(include="all").T.style.format("{:.3f}", na_rep="—"), use_container_width=True)
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\metrics_util.py", line 563, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\elements\arrow.py", line 928, in dataframe
+    marshall_styler(proto.arrow_data, data, default_uuid)
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\elements\lib\pandas_styler_utils.py", line 67, in marshall_styler
+    pandas_styles = styler._translate(False, False)  # type: ignore
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 335, in _translate
+    body: list = self._translate_body(idx_lengths, max_rows, max_cols)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 629, in _translate_body
+    body_row = self._generate_body_row(
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 826, in _generate_body_row
+    display_value=self._display_funcs[(r, c)](value),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 1864, in <lambda>
+    return lambda x: na_rep if (isna(x) is True) else func_3(x)
+                                                      ^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 1829, in <lambda>
+    func_0 = lambda x: formatter.format(x)
+                       ^^^^^^^^^^^^^^^^^^^
+ValueError: Unknown format code 'f' for object of type 'str'
+2026-04-13 19:42:52.045 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-04-13 19:42:52.101 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 439, in <module>
+    from src.models.registry import get_available_models
+ModuleNotFoundError: No module named 'src'
+2026-04-13 19:43:07.706 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-04-13 19:43:07.746 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 439, in <module>
+    from src.models.registry import get_available_models
+ModuleNotFoundError: No module named 'src'
+2026-04-13 19:43:30.168 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 507, in <module>
+    from src.models.registry import get_available_models
+ModuleNotFoundError: No module named 'src'
+2026-04-13 19:43:45.462 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-04-13 19:43:45.494 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 439, in <module>
+    from src.models.registry import get_available_models
+ModuleNotFoundError: No module named 'src'
+2026-04-13 19:44:45.831 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 507, in <module>
+    from src.models.registry import get_available_models
+ModuleNotFoundError: No module named 'src'
+2026-04-13 19:44:51.385 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-04-13 19:44:51.410 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 439, in <module>
+    from src.models.registry import get_available_models
+ModuleNotFoundError: No module named 'src'
