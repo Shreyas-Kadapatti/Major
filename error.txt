@@ -1,137 +1,61 @@
- C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system> streamlit run dashboard/app.py                       
-                           
-  You can now view your Streamlit app in your browser.
-
-  Local URL: http://localhost:8501
-  Network URL: http://192.168.0.101:8501
-
-2026-04-13 19:42:06.639 Please replace `use_container_width` with `width`.
+Successfully registered model 'svm'.
+Created version '1' of model 'svm'.
+2026-04-13 19:56:23 - src.tracking.mlflow_tracker - INFO - Model 'svm' logged to MLflow.
+2026-04-13 19:56:23 - src.tracking.mlflow_tracker - INFO - MLflow run ended.
+2026-04-13 19:56:47.672 Please replace `use_container_width` with `width`.
 
 `use_container_width` will be removed after 2025-12-31.
 
 For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
-2026-04-13 19:42:08.570 Please replace `use_container_width` with `width`.
+2026-04-13 19:57:52.440 Uncaught app execution
+Traceback (most recent call last):
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\Downloads\automl_system_fixed\automl_system\dashboard\app.py", line 901, in <module>
+    df_shap = pd.DataFrame({
+              ^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\frame.py", line 782, in __init__
+    mgr = dict_to_mgr(data, index, columns, dtype=dtype, copy=copy, typ=manager)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\internals\construction.py", line 503, in dict_to_mgr
+    return arrays_to_mgr(arrays, columns, index, dtype=dtype, typ=typ, consolidate=copy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\internals\construction.py", line 114, in arrays_to_mgr
+    index = _extract_index(arrays)
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\internals\construction.py", line 664, in _extract_index
+    raise ValueError("Per-column arrays must each be 1-dimensional")
+ValueError: Per-column arrays must each be 1-dimensional
+2026-04-13 19:58:29.913 Please replace `use_container_width` with `width`.
 
 `use_container_width` will be removed after 2025-12-31.
 
 For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
-2026-04-13 19:42:08.598 Uncaught app execution
-Traceback (most recent call last):
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
-    result = func()
-             ^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
-    exec(code, module.__dict__)  # noqa: S102
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 369, in <module>
-    st.dataframe(df.describe(include="all").T.style.format("{:.3f}", na_rep="—"), use_container_width=True)
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\metrics_util.py", line 563, in wrapped_func
-    result = non_optional_func(*args, **kwargs)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\elements\arrow.py", line 928, in dataframe
-    marshall_styler(proto.arrow_data, data, default_uuid)
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\elements\lib\pandas_styler_utils.py", line 67, in marshall_styler
-    pandas_styles = styler._translate(False, False)  # type: ignore
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 335, in _translate
-    body: list = self._translate_body(idx_lengths, max_rows, max_cols)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 629, in _translate_body
-    body_row = self._generate_body_row(
-               ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 826, in _generate_body_row
-    display_value=self._display_funcs[(r, c)](value),
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 1864, in <lambda>
-    return lambda x: na_rep if (isna(x) is True) else func_3(x)
-                                                      ^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\io\formats\style_render.py", line 1829, in <lambda>
-    func_0 = lambda x: formatter.format(x)
-                       ^^^^^^^^^^^^^^^^^^^
-ValueError: Unknown format code 'f' for object of type 'str'
-2026-04-13 19:42:52.045 Please replace `use_container_width` with `width`.
+2026-04-13 19:58:55.611 Please replace `use_container_width` with `width`.
 
 `use_container_width` will be removed after 2025-12-31.
 
 For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
-2026-04-13 19:42:52.101 Uncaught app execution
-Traceback (most recent call last):
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
-    result = func()
-             ^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
-    exec(code, module.__dict__)  # noqa: S102
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 439, in <module>
-    from src.models.registry import get_available_models
-ModuleNotFoundError: No module named 'src'
-2026-04-13 19:43:07.706 Please replace `use_container_width` with `width`.
+2026-04-13 19:58:55.636 Please replace `use_container_width` with `width`.
 
 `use_container_width` will be removed after 2025-12-31.
 
 For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
-2026-04-13 19:43:07.746 Uncaught app execution
-Traceback (most recent call last):
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
-    result = func()
-             ^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
-    exec(code, module.__dict__)  # noqa: S102
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 439, in <module>
-    from src.models.registry import get_available_models
-ModuleNotFoundError: No module named 'src'
-2026-04-13 19:43:30.168 Uncaught app execution
-Traceback (most recent call last):
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
-    result = func()
-             ^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
-    exec(code, module.__dict__)  # noqa: S102
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 507, in <module>
-    from src.models.registry import get_available_models
-ModuleNotFoundError: No module named 'src'
-2026-04-13 19:43:45.462 Please replace `use_container_width` with `width`.
+2026-04-13 19:58:55.790 Please replace `use_container_width` with `width`.
 
 `use_container_width` will be removed after 2025-12-31.
 
 For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
-2026-04-13 19:43:45.494 Uncaught app execution
+2026-04-13 19:58:55.790 Serialization of dataframe to Arrow table was unsuccessful. Applying automatic fixes for column types to make the dataframe Arrow-compatible.
 Traceback (most recent call last):
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
-    result = func()
-             ^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
-    exec(code, module.__dict__)  # noqa: S102
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 439, in <module>
-    from src.models.registry import get_available_models
-ModuleNotFoundError: No module named 'src'
-2026-04-13 19:44:45.831 Uncaught app execution
-Traceback (most recent call last):
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
-    result = func()
-             ^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
-    exec(code, module.__dict__)  # noqa: S102
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 507, in <module>
-    from src.models.registry import get_available_models
-ModuleNotFoundError: No module named 'src'
-2026-04-13 19:44:51.385 Please replace `use_container_width` with `width`.
-
-`use_container_width` will be removed after 2025-12-31.
-
-For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
-2026-04-13 19:44:51.410 Uncaught app execution
-Traceback (most recent call last):
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 129, in exec_func_with_error_handling
-    result = func()
-             ^^^^^^
-  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 689, in code_to_exec
-    exec(code, module.__dict__)  # noqa: S102
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\shreyas.kadapatti\Downloads\automl_system\automl_system\dashboard\app.py", line 439, in <module>
-    from src.models.registry import get_available_models
-ModuleNotFoundError: No module named 'src'
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\dataframe_util.py", line 818, in convert_pandas_df_to_arrow_bytes
+    table = pa.Table.from_pandas(df)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pyarrow/table.pxi", line 4796, in pyarrow.lib.Table.from_pandas
+  File "C:\Users\shreyas.kadapatti\AppData\Local\Programs\Python\Python311\Lib\site-packages\pyarrow\pandas_compat.py", line 651, in dataframe_to_arrays
+    arrays = [convert_column(c, f)
+             ^^^^^^^^^^^^^^^^^^^^^
