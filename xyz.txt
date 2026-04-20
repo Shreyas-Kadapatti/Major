@@ -1,289 +1,261 @@
-# ══════════════════════════════════════════════════════════════════════════════
-# PAGE 3 — TRAINING
-# ══════════════════════════════════════════════════════════════════════════════
-elif page == "Training":
-    page_header(
-        "Training",
-        "Execute the full AutoML pipeline: ingestion, preprocessing, hyperparameter tuning, "
-        "model training, evaluation, and artifact export — all in a single click."
-    )
-    
-    if st.session_state.df is None or st.session_state.target_col is None:
-        st.warning("Upload data and set a target column in Configuration before training.")
-        st.stop()
+# 🤖 AutoML Classification System
 
-    col_ctrl, col_log = st.columns([1, 2])
+A production-grade, modular, and scalable AutoML pipeline with explainability, experiment tracking, FastAPI deployment, and a Streamlit dashboard.
 
-    with col_ctrl:
-        tc   = st.session_state.target_col
-        sel  = st.session_state.get("selected_models", [])
-        tune = st.session_state.get("tune_enabled", True)
+---
 
-        from src.models.registry import get_available_models
-        if not sel:
-            sel = get_available_models()[:5]
+## 📁 Project Structure
 
-        section("Pipeline Configuration")
-        st.markdown(f"""
-        <div style="background:#0f1118; border:1px solid #1e2535; border-radius:6px; padding:14px 16px; font-size:0.82rem;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
-            <span style="color:#4a5568;">Dataset</span>
-            <span style="color:#a0aec0;">{st.session_state.df.shape[0]:,} x {st.session_state.df.shape[1]}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
-            <span style="color:#4a5568;">Target Column</span>
-            <span style="color:#7c6fc9; font-family:'JetBrains Mono',monospace;">{tc}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
-            <span style="color:#4a5568;">Models Selected</span>
-            <span style="color:#a0aec0;">{len(sel)}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:#4a5568;">Hyperparameter Tuning</span>
-            <span>{"<span class='status-ok'>Enabled</span>" if tune else "<span class='status-warn'>Disabled</span>"}</span>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
+```
+automl_system/
+├── config/
+│   └── config.yaml              # Pipeline configuration
+├── data/
+│   ├── raw/                     # Raw input datasets
+│   └── processed/               # Processed datasets
+├── src/
+│   ├── ingestion/
+│   │   └── data_loader.py       # CSV/Excel/Parquet loading + profiling
+│   ├── preprocessing/
+│   │   └── pipeline.py          # sklearn Pipeline + ColumnTransformer
+│   ├── models/
+│   │   ├── registry.py          # Unified model registry + search spaces
+│   │   ├── trainer.py           # Cross-validated model training
+│   │   └── selector.py          # Best model selection + persistence
+│   ├── tuning/
+│   │   └── optuna_tuner.py      # Optuna Bayesian hyperparameter tuning
+│   ├── evaluation/
+│   │   └── evaluator.py         # Metrics, confusion matrix, ROC curves
+│   ├── explainability/
+│   │   └── shap_explainer.py    # SHAP global/local + LIME
+│   ├── tracking/
+│   │   └── mlflow_tracker.py    # MLflow experiment tracking + registry
+│   ├── deployment/
+│   │   ├── drift_detector.py    # KS/Chi-square data drift detection
+│   │   └── model_monitor.py     # Production prediction monitoring
+│   └── utils/
+│       ├── config_loader.py     # YAML config loader
+│       └── logger.py            # Centralized logging
+├── pipeline/
+│   └── training_pipeline.py    # End-to-end pipeline orchestrator
+├── api/
+│   └── app.py                  # FastAPI REST API
+├── dashboard/
+│   └── app.py                  # Streamlit multi-page dashboard
+├── tests/
+│   ├── test_pipeline.py        # Unit + integration tests (pytest)
+│   └── integration_test.py     # Full smoke test
+├── .github/
+│   └── workflows/ci.yml        # GitHub Actions CI/CD
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
+```
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.caption("Models: " + ", ".join(sel))
-        st.markdown("<br>", unsafe_allow_html=True)
+---
 
-        run_btn = st.button("Run AutoML Pipeline", use_container_width=True, type="primary")
+## 🚀 Quick Start
 
-    with col_log:
-        section("Execution Log")
-        logs     = st.session_state.training_logs
-        log_html = (
-            "<br>".join(f"<span style='color:#38a169'>+</span> {l}" for l in logs)
-            if logs else
-            "<span style='color:#4a5568'>Pipeline output will appear here once training starts.</span>"
-        )
-        log_placeholder = st.empty()
-        log_placeholder.markdown(f'<div class="log-box">{log_html}</div>', unsafe_allow_html=True)
+### 1. Clone & Setup
 
-    # ── Pipeline execution ────────────────────────────────────────────────────
-    if run_btn:
-        st.session_state.update({"training_logs": [], "trained": False, "tuner_obj": None})
-        cp = "config/config.yaml"
-        if not Path(cp).exists():
-            import yaml
-            Path("config").mkdir(exist_ok=True)
-            with open(cp, "w") as f:
-                yaml.dump({
-                    "project":        {"name": "AutoML", "version": "2.0.0", "random_state": 42},
-                    "data":           {"raw_path": "data/raw", "processed_path": "data/processed", "test_size": 0.2},
-                    "preprocessing":  {"numeric_imputer": "median", "categorical_imputer": "most_frequent", "scaler": "standard", "encoding": "onehot"},
-                    "models":         {"enabled": sel, "cross_validation_folds": 5},
-                    "tuning":         {"enabled": tune, "n_trials": 20, "timeout": 60, "metric": "f1_weighted"},
-                    "evaluation":     {"metrics": ["accuracy", "f1_weighted"], "threshold": 0.5},
-                    "explainability": {"shap_enabled": True, "lime_enabled": False, "max_display_features": 20},
-                    "tracking":       {"mlflow": {"enabled": True, "tracking_uri": "mlruns", "experiment_name": "automl_classification"}},
-                    "deployment":     {"api": {"host": "0.0.0.0", "port": 8000}},
-                    "logging":        {"level": "INFO"},
-                }, f)
+```bash
+git clone <your-repo-url>
+cd automl_system
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-        try:
-            tmp = "data/raw/_upload.csv"
-            Path("data/raw").mkdir(parents=True, exist_ok=True)
-            st.session_state.df.to_csv(tmp, index=False)
+### 2. Launch the Streamlit Dashboard
 
-            from src.utils.config_loader import load_config
-            cfg = load_config(cp)
+```bash
+streamlit run dashboard/app.py
+```
 
-            pb   = st.progress(0)
-            stxt = st.empty()
-            logs  = []
+Open http://localhost:8501 in your browser.
 
-            def cb(msg, pct):
-                logs.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
-                pb.progress(pct / 100)
-                stxt.markdown(f"**{msg}**")
-                lh = "<br>".join(f"<span style='color:#38a169'>+</span> {l}" for l in logs[-15:])
-                log_placeholder.markdown(f'<div class="log-box">{lh}</div>', unsafe_allow_html=True)
+---
 
-            from src.ingestion.data_loader import DataIngestion
-            from src.preprocessing.pipeline import PreprocessingPipeline
-            from src.models.trainer import ModelTrainer
-            from src.models.selector import ModelSelector
-            from src.evaluation.evaluator import ModelEvaluator
-            from src.evaluation.artifact_exporter import save_model_artifact, build_performance_report
-            from src.tracking.mlflow_tracker import ExperimentTracker
-            from sklearn.model_selection import train_test_split
+### 3. Run via Python API
 
-            cb("Ingesting data...", 5)
-            ing = DataIngestion(cfg)
-            df_in, col_type_map, _ = ing.run(tmp, tc)
+```python
+from pipeline.training_pipeline import TrainingPipeline
 
-            cb("Building preprocessing pipeline...", 15)
-            pp = PreprocessingPipeline(cfg)
-            X, y = pp.fit_transform(df_in, tc, col_type_map.get("numeric", []), col_type_map.get("categorical", []))
-            pp.save("models/preprocessor.pkl")
-            cn = [str(c) for c in pp.label_encoder.classes_]
+pipeline = TrainingPipeline("config/config.yaml")
+results = pipeline.run(
+    file_path="data/raw/your_dataset.csv",
+    target_col="target",
+    model_names=["random_forest", "xgboost", "lightgbm"],
+    tune=True,
+)
 
-            ts_v = cfg.get("data", {}).get("test_size", 0.2)
-            X_tv,  X_test,  y_tv,  y_test  = train_test_split(X, y, test_size=ts_v, random_state=42, stratify=y)
-            X_train, X_val, y_train, y_val  = train_test_split(X_tv, y_tv, test_size=0.15, random_state=42, stratify=y_tv)
+print(results["leaderboard"])
+print(f"Best model: {results['best_model_name']}")
+```
 
-            st.session_state.X_train = X_train
-            st.session_state.y_train = y_train
-            st.session_state.X_val   = X_val
-            st.session_state.y_val   = y_val
-            st.session_state.X_test  = X_test
-            st.session_state.y_test  = y_test
+---
 
-            bp = {}
-            if tune:
-                cb(f"Tuning {len(sel)} models with Optuna...", 28)
-                from src.tuning.optuna_tuner import HyperparameterTuner
-                tnr = HyperparameterTuner(cfg)
-                bp  = tnr.tune_all(X_train, y_train, sel)
-                st.session_state.tuner_obj = tnr
-                Path("models").mkdir(exist_ok=True)
-                with open("models/best_params.json", "w") as f:
-                    json.dump(bp, f, indent=2, default=str)
+### 4. Launch FastAPI Server
 
-            cb(f"Training {len(sel)} models...", 55)
-            tr  = ModelTrainer(cfg)
-            tms = tr.train_all(X_train, y_train, sel, bp)
+```bash
+uvicorn api.app:app --host 0.0.0.0 --port 8000 --reload
+```
 
-            cb("Evaluating all models...", 72)
-            ev = ModelEvaluator(cfg)
-            lb = ev.compare_models(tms, X_test, y_test)
+API docs: http://localhost:8000/docs
 
-            cb("Selecting champion model...", 82)
-            sl_ = ModelSelector(cfg)
-            bn, bm = sl_.select(tms, lb)
-            sl_.save("models/best_model.pkl")
+#### Single Prediction
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"features": {"age": 35, "income": 60000, "education": "Bachelor"}, "explain": false}'
+```
 
-            tm_ = compute_metrics(bm, X_train, y_train)
-            vm_ = compute_metrics(bm, X_val,   y_val)
-            tsm = compute_metrics(bm, X_test,  y_test)
+#### Batch Prediction
+```bash
+curl -X POST http://localhost:8000/predict/batch \
+  -H "Content-Type: application/json" \
+  -d '{"records": [{"age": 35, "income": 60000}, {"age": 28, "income": 42000}]}'
+```
 
-            cb("Exporting artifacts...", 88)
-            meta = {
-                "train_metrics":  tm_,
-                "val_metrics":    vm_,
-                "test_metrics":   tsm,
-                "best_params":    bp.get(bn, {}),
-                "class_names":    cn,
-                "feature_names":  pp.feature_names_out[:50],
-                "dataset_shape":  df_in.shape,
-                "model_version":  "2.0",
-            }
-            ap = save_model_artifact(bm, pp, bn, meta, "models/champion_artifact.joblib")
-            pr_html = build_performance_report(bn, lb, tm_, vm_, tsm, bp.get(bn, {}), cn)
-            with open("models/performance_report.html", "w", encoding="utf-8") as f:
-                f.write(pr_html)
+---
 
-            cb("Logging runs to MLflow...", 93)
-            tk = ExperimentTracker(cfg)
-            for nm, mo in tms.items():
-                row = lb[lb["model"] == nm]
-                met = row.iloc[0].to_dict() if not row.empty else {}
-                tk.log_full_run(
-                    model_name=nm, model=mo, params=bp.get(nm, {}),
-                    metrics={k: v for k, v in met.items() if k != "model"},
-                    tags={"best": str(nm == bn)}
-                )
+## 🐳 Docker
 
-            cb("Generating model card...", 97)
-            try:
-                from src.evaluation.model_card import ModelCardGenerator
-                mcg = ModelCardGenerator()
-                tnr_obj = st.session_state.get("tuner_obj")
-                ti_info = tnr_obj.best_trial_info.get(bn, {}) if tnr_obj else {}
-                mcg.build(
-                    model_name=bn, model_type=type(bm).__name__,
-                    dataset_name=st.session_state.get("file_name", "uploaded_dataset"),
-                    target_col=tc, feature_names=pp.feature_names_out, class_names=cn,
-                    train_metrics=tm_, val_metrics=vm_, test_metrics=tsm,
-                    best_params=bp.get(bn, {}),
-                    dataset_shape=df_in.shape,
-                    n_trials_run=ti_info.get("n_trials_run", 0),
-                    best_trial_number=ti_info.get("trial_number", 0),
-                    tuning_metric=ti_info.get("metric", "f1_weighted"),
-                    intended_use="Binary or multiclass tabular classification on structured data.",
-                    limitations="Performance may degrade on out-of-distribution or highly imbalanced data.",
-                    ethical_notes="Ensure the training dataset is free of harmful bias."
-                )
-                st.session_state.model_card_obj = mcg
-            except Exception as mc_err:
-                logs.append(f"[WARN] Model card generation failed: {mc_err}")
+### Build & Run All Services
 
-            cb("Pipeline complete.", 100)
-            st.session_state.update({
-                "trained":        True,
-                "leaderboard":    lb,
-                "best_model_name": bn,
-                "best_model":     bm,
-                "preprocessor":   pp,
-                "class_names":    cn,
-                "feature_names":  pp.feature_names_out,
-                "X_test":         X_test,
-                "y_test":         y_test,
-                "X_train":        X_train,
-                "X_val":          X_val,
-                "y_val":          y_val,
-                "trained_models": tms,
-                "training_logs":  logs,
-                "best_params":    bp,
-                "train_metrics":  tm_,
-                "val_metrics":    vm_,
-                "test_metrics":   tsm,
-                "artifact_path":  ap,
-            })
-            st.success(f"Training complete. Champion model: {bn.replace('_', ' ').title()}")
-            # ─────────────────────────────────────────────────────────────
-# PIPELINE OUTPUT — AUTO‑RENDER BELOW TRAINING
-# ─────────────────────────────────────────────────────────────
-            if st.session_state.trained:
+```bash
+docker-compose up --build
+```
 
-                st.divider()
-                render_model_performance()
+| Service     | URL                    |
+|-------------|------------------------|
+| FastAPI     | http://localhost:8000  |
+| Streamlit   | http://localhost:8501  |
+| MLflow UI   | http://localhost:5000  |
 
-                st.divider()
-                render_explainability()
+### Run Single Service
 
-                st.divider()
-                render_hyperparameter_log()
+```bash
+# API only
+docker-compose up api
 
-                st.divider()
-                render_model_card()
-        except Exception as e:
-            import traceback
-            st.error(f"Pipeline error: {e}")
-            st.code(traceback.format_exc())
+# Dashboard only
+docker-compose up dashboard
+```
 
+---
 
+## ⚙️ Configuration
 
+Edit `config/config.yaml` to customize:
 
+```yaml
+preprocessing:
+  scaler: standard        # standard | minmax | robust
+  numeric_imputer: median # mean | median | most_frequent
+  encoding: onehot        # onehot | label
 
-Problem 1 — SHAP computation “redirects” back to Training
-What you observe
+models:
+  enabled:
+    - logistic_regression
+    - random_forest
+    - xgboost
+    - lightgbm
+    - catboost
 
-You click Compute SHAP values
-Suddenly the app behaves as if training needs to be run again
-Sometimes it clears results or shows “Run training first”
+tuning:
+  enabled: true
+  n_trials: 50
+  timeout: 300            # seconds per model
 
-✅ Root cause (important)
-Streamlit re-runs the entire script top → bottom on every interaction.
-What’s going wrong in your app:
-When you click Compute SHAP, Streamlit:
+tracking:
+  mlflow:
+    enabled: true
+    experiment_name: automl_classification
+```
 
-Re-runs the script
-Re-enters elif page == "Training"
-Re-evaluates guards
-Something is missing OR trained is reset OR stop() triggers
+---
 
-✅ That is why it looks like a redirect
-This is not navigation, it is a re-run crash / early stop
+## 🧪 Tests
 
-🔴 Problem 2 — Results disappear when switching navigation
-What you observe
+```bash
+# Run all unit tests
+pytest tests/ -v
 
-You train once ✅
-Results appear ✅
-You go to “Predictions” or “Hypothesis Testing”
-You come back to “Training”
-❌ Results are gone → must re-run pipeline
+# Run with coverage
+pytest tests/ --cov=src --cov-report=html
+
+# Run integration test
+python tests/integration_test.py
+```
+
+---
+
+## 📊 Supported Models
+
+| Model               | Tuning | Feature Importance | SHAP |
+|---------------------|--------|--------------------|------|
+| Logistic Regression | ✅     | ✅ (coef)          | ✅   |
+| Decision Tree       | ✅     | ✅                 | ✅   |
+| Random Forest       | ✅     | ✅                 | ✅   |
+| XGBoost             | ✅     | ✅                 | ✅   |
+| LightGBM            | ✅     | ✅                 | ✅   |
+| CatBoost            | ✅     | ✅                 | ✅   |
+| SVM                 | ✅     | ❌                 | ✅   |
+| MLP                 | ✅     | ❌                 | ✅   |
+
+---
+
+## 📈 Dashboard Pages
+
+| Page                | Features                                           |
+|---------------------|----------------------------------------------------|
+| 📂 Data Upload      | CSV/Excel/Parquet upload, preview, missing values  |
+| ⚙️ Configuration    | Target, models, tuning, preprocessing settings     |
+| 🚀 Training         | One-click training, real-time progress & logs      |
+| 📈 Model Performance| Leaderboard, radar, confusion matrix, ROC curve    |
+| 🔍 Explainability   | Feature importance, SHAP global & per-instance     |
+| 🔮 Predictions      | Manual form input + batch CSV upload               |
+| 📦 Model Registry   | MLflow run browser + metric comparison             |
+
+---
+
+## 🔍 Explainability
+
+- **SHAP TreeExplainer** for tree-based models (XGBoost, LightGBM, Random Forest)
+- **SHAP LinearExplainer** for linear models
+- **SHAP KernelExplainer** for any black-box model
+- **LIME** tabular explainer for local explanations
+- Global feature importance bar charts
+- Per-instance waterfall plots
+
+---
+
+## 📦 Bonus Features
+
+- ✅ **Docker + docker-compose** for all services
+- ✅ **GitHub Actions** CI/CD (lint, test, build, push)
+- ✅ **Data Drift Detection** (KS test + Chi-square)
+- ✅ **Model Monitoring** (latency, confidence, class distribution)
+- ✅ **MLflow Model Registry** (Staging / Production stages)
+
+---
+
+## 🧱 Tech Stack
+
+- **ML**: scikit-learn, XGBoost, LightGBM, CatBoost
+- **Tuning**: Optuna (TPE Sampler + Median Pruner)
+- **Tracking**: MLflow
+- **Explainability**: SHAP, LIME
+- **API**: FastAPI + Pydantic + Uvicorn
+- **Dashboard**: Streamlit + Plotly
+- **Testing**: pytest
+- **CI/CD**: GitHub Actions
+- **Containers**: Docker + docker-compose
+
+---
+
+## 📄 License
+
+MIT License — see LICENSE for details.
