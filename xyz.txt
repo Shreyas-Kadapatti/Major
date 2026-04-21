@@ -1,261 +1,106 @@
-# 🤖 AutoML Classification System
+I have built a reusable AutoML framework that trains, tunes, evaluates, and explains multiple ML models automatically.
+I want to enhance it to be production‑ready, compliant, and safe for non‑expert users.
 
-A production-grade, modular, and scalable AutoML pipeline with explainability, experiment tracking, FastAPI deployment, and a Streamlit dashboard.
+Please implement the following enhancements end‑to‑end, integrated cleanly into the existing AutoML pipeline:
 
----
+────────────────────────────────────────────
+1. Feature Leakage Detection (MANDATORY)
+────────────────────────────────────────────
+Before training any model, add a mandatory feature leakage detection step.
 
-## 📁 Project Structure
+The system must:
+- Automatically detect target‑correlated features (numeric, categorical, text)
+- Flag features with suspiciously high correlation or mutual information with the target
+- Detect future/post‑outcome or target‑derived features
+- Include simple name‑based heuristics (e.g., columns containing words like target, label, result, outcome)
+- Work without training heavy models
 
-```
-automl_system/
-├── config/
-│   └── config.yaml              # Pipeline configuration
-├── data/
-│   ├── raw/                     # Raw input datasets
-│   └── processed/               # Processed datasets
-├── src/
-│   ├── ingestion/
-│   │   └── data_loader.py       # CSV/Excel/Parquet loading + profiling
-│   ├── preprocessing/
-│   │   └── pipeline.py          # sklearn Pipeline + ColumnTransformer
-│   ├── models/
-│   │   ├── registry.py          # Unified model registry + search spaces
-│   │   ├── trainer.py           # Cross-validated model training
-│   │   └── selector.py          # Best model selection + persistence
-│   ├── tuning/
-│   │   └── optuna_tuner.py      # Optuna Bayesian hyperparameter tuning
-│   ├── evaluation/
-│   │   └── evaluator.py         # Metrics, confusion matrix, ROC curves
-│   ├── explainability/
-│   │   └── shap_explainer.py    # SHAP global/local + LIME
-│   ├── tracking/
-│   │   └── mlflow_tracker.py    # MLflow experiment tracking + registry
-│   ├── deployment/
-│   │   ├── drift_detector.py    # KS/Chi-square data drift detection
-│   │   └── model_monitor.py     # Production prediction monitoring
-│   └── utils/
-│       ├── config_loader.py     # YAML config loader
-│       └── logger.py            # Centralized logging
-├── pipeline/
-│   └── training_pipeline.py    # End-to-end pipeline orchestrator
-├── api/
-│   └── app.py                  # FastAPI REST API
-├── dashboard/
-│   └── app.py                  # Streamlit multi-page dashboard
-├── tests/
-│   ├── test_pipeline.py        # Unit + integration tests (pytest)
-│   └── integration_test.py     # Full smoke test
-├── .github/
-│   └── workflows/ci.yml        # GitHub Actions CI/CD
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
-```
+Output:
+- List of suspected leakage features
+- Either warn the user or block training based on severity
 
----
+Constraints:
+- Must be fast
+- Model‑agnostic
+- Must run BEFORE AutoML training starts
 
-## 🚀 Quick Start
+────────────────────────────────────────────
+2. Invertible Preprocessing for Data Lineage (C3 Compliance)
+────────────────────────────────────────────
+Ensure all preprocessing steps are fully invertible and auditable for data lineage compliance.
 
-### 1. Clone & Setup
+Requirements:
+- All preprocessing must be implemented inside versioned sklearn Pipelines / ColumnTransformers
+- No manual feature transformations outside the pipeline
+- Transformation parameters (scalers, encoders, vocabularies) must be persisted
+- Feature names must be traceable back to original raw columns
+- Raw data must never be overwritten
 
-```bash
-git clone <your-repo-url>
-cd automl_system
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
+Goal:
+- Every transformed feature must be explainable in terms of its raw data origin
+- The preprocessing pipeline must be reproducible and auditable
 
-### 2. Launch the Streamlit Dashboard
+────────────────────────────────────────────
+3. Mandatory SHAP Explainability with Model‑Aware Selection
+────────────────────────────────────────────
+SHAP explanations are mandatory for all trained models.
 
-```bash
-streamlit run dashboard/app.py
-```
+Implement a SHAP explainer factory that:
+- Automatically selects optimized explainers:
+  - TreeExplainer for tree‑based models
+  - LinearExplainer for linear and Naive Bayes models
+  - KernelExplainer (wrapper) for models without native SHAP support (e.g., SVM, KNN, MLP)
+- Clearly indicates when explanations are approximate
 
-Open http://localhost:8501 in your browser.
+────────────────────────────────────────────
+4. Explainability Latency Optimization via SHAP Caching
+────────────────────────────────────────────
+Optimize explainability latency by caching SHAP results.
 
----
+Requirements:
+- Compute SHAP only once per trained model
+- Cache global explanations (feature importance) and batch explanations
+- Reuse cached SHAP results for UI rendering and downloads
+- Limit per‑instance SHAP computation for slow (wrapper‑based) models
+- Avoid recomputing SHAP on repeated UI actions
 
-### 3. Run via Python API
+Goal:
+- Low‑latency explainability even for large datasets and complex models
 
-```python
-from pipeline.training_pipeline import TrainingPipeline
+────────────────────────────────────────────
+5. Guardrails Against Misuse by Non‑Experts
+────────────────────────────────────────────
+Add guardrails to prevent incorrect interpretation or misuse of the AutoML framework by non‑expert users.
 
-pipeline = TrainingPipeline("config/config.yaml")
-results = pipeline.run(
-    file_path="data/raw/your_dataset.csv",
-    target_col="target",
-    model_names=["random_forest", "xgboost", "lightgbm"],
-    tune=True,
-)
+Guardrails should include:
+- Automatic warnings when:
+  - Dataset is very small or highly imbalanced
+  - Model assumptions may be violated
+  - SHAP explanations are approximate
+- Sensible defaults (CV strategy, early stopping, metrics)
+- Limits on expensive operations (e.g., Kernel SHAP batch size)
+- Clear user‑facing messages explaining limitations
 
-print(results["leaderboard"])
-print(f"Best model: {results['best_model_name']}")
-```
+────────────────────────────────────────────
+6. Contextual Documentation & Responsible AI Messaging
+────────────────────────────────────────────
+Provide lightweight, contextual documentation directly inside the framework.
 
----
+Include:
+- Inline explanations of metrics and model choices
+- Model cards summarizing:
+  - When the model works well
+  - Known limitations
+  - Interpretability caveats
+- Just‑in‑time tooltips instead of heavy docs
 
-### 4. Launch FastAPI Server
+────────────────────────────────────────────
+Implementation constraints:
+- Must not significantly increase training time
+- Must be modular and reusable across datasets
+- Must integrate cleanly into an AutoML pipeline
+- Prefer fast statistical checks and heuristics
+- Avoid over‑engineering or heavy external dependencies
 
-```bash
-uvicorn api.app:app --host 0.0.0.0 --port 8000 --reload
-```
-
-API docs: http://localhost:8000/docs
-
-#### Single Prediction
-```bash
-curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{"features": {"age": 35, "income": 60000, "education": "Bachelor"}, "explain": false}'
-```
-
-#### Batch Prediction
-```bash
-curl -X POST http://localhost:8000/predict/batch \
-  -H "Content-Type: application/json" \
-  -d '{"records": [{"age": 35, "income": 60000}, {"age": 28, "income": 42000}]}'
-```
-
----
-
-## 🐳 Docker
-
-### Build & Run All Services
-
-```bash
-docker-compose up --build
-```
-
-| Service     | URL                    |
-|-------------|------------------------|
-| FastAPI     | http://localhost:8000  |
-| Streamlit   | http://localhost:8501  |
-| MLflow UI   | http://localhost:5000  |
-
-### Run Single Service
-
-```bash
-# API only
-docker-compose up api
-
-# Dashboard only
-docker-compose up dashboard
-```
-
----
-
-## ⚙️ Configuration
-
-Edit `config/config.yaml` to customize:
-
-```yaml
-preprocessing:
-  scaler: standard        # standard | minmax | robust
-  numeric_imputer: median # mean | median | most_frequent
-  encoding: onehot        # onehot | label
-
-models:
-  enabled:
-    - logistic_regression
-    - random_forest
-    - xgboost
-    - lightgbm
-    - catboost
-
-tuning:
-  enabled: true
-  n_trials: 50
-  timeout: 300            # seconds per model
-
-tracking:
-  mlflow:
-    enabled: true
-    experiment_name: automl_classification
-```
-
----
-
-## 🧪 Tests
-
-```bash
-# Run all unit tests
-pytest tests/ -v
-
-# Run with coverage
-pytest tests/ --cov=src --cov-report=html
-
-# Run integration test
-python tests/integration_test.py
-```
-
----
-
-## 📊 Supported Models
-
-| Model               | Tuning | Feature Importance | SHAP |
-|---------------------|--------|--------------------|------|
-| Logistic Regression | ✅     | ✅ (coef)          | ✅   |
-| Decision Tree       | ✅     | ✅                 | ✅   |
-| Random Forest       | ✅     | ✅                 | ✅   |
-| XGBoost             | ✅     | ✅                 | ✅   |
-| LightGBM            | ✅     | ✅                 | ✅   |
-| CatBoost            | ✅     | ✅                 | ✅   |
-| SVM                 | ✅     | ❌                 | ✅   |
-| MLP                 | ✅     | ❌                 | ✅   |
-
----
-
-## 📈 Dashboard Pages
-
-| Page                | Features                                           |
-|---------------------|----------------------------------------------------|
-| 📂 Data Upload      | CSV/Excel/Parquet upload, preview, missing values  |
-| ⚙️ Configuration    | Target, models, tuning, preprocessing settings     |
-| 🚀 Training         | One-click training, real-time progress & logs      |
-| 📈 Model Performance| Leaderboard, radar, confusion matrix, ROC curve    |
-| 🔍 Explainability   | Feature importance, SHAP global & per-instance     |
-| 🔮 Predictions      | Manual form input + batch CSV upload               |
-| 📦 Model Registry   | MLflow run browser + metric comparison             |
-
----
-
-## 🔍 Explainability
-
-- **SHAP TreeExplainer** for tree-based models (XGBoost, LightGBM, Random Forest)
-- **SHAP LinearExplainer** for linear models
-- **SHAP KernelExplainer** for any black-box model
-- **LIME** tabular explainer for local explanations
-- Global feature importance bar charts
-- Per-instance waterfall plots
-
----
-
-## 📦 Bonus Features
-
-- ✅ **Docker + docker-compose** for all services
-- ✅ **GitHub Actions** CI/CD (lint, test, build, push)
-- ✅ **Data Drift Detection** (KS test + Chi-square)
-- ✅ **Model Monitoring** (latency, confidence, class distribution)
-- ✅ **MLflow Model Registry** (Staging / Production stages)
-
----
-
-## 🧱 Tech Stack
-
-- **ML**: scikit-learn, XGBoost, LightGBM, CatBoost
-- **Tuning**: Optuna (TPE Sampler + Median Pruner)
-- **Tracking**: MLflow
-- **Explainability**: SHAP, LIME
-- **API**: FastAPI + Pydantic + Uvicorn
-- **Dashboard**: Streamlit + Plotly
-- **Testing**: pytest
-- **CI/CD**: GitHub Actions
-- **Containers**: Docker + docker-compose
-
----
-
-## 📄 License
-
-MIT License — see LICENSE for details.
+Explain briefly WHY each component is necessary and HOW it improves reliability, trust, and production readiness.
+``
