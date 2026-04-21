@@ -1,199 +1,26 @@
-# ══════════════════════════════════════════════════════════════════════════════
-# PAGE 3 — TRAINING (FIXED)
-# ══════════════════════════════════════════════════════════════════════════════
-elif page == "Training":
+I have built a reusable AutoML framework that trains and tunes multiple models automatically.
+Before training, I want to add a mandatory Feature Leakage Detection step.
 
-    page_header(
-        "Training",
-        "Execute the full AutoML pipeline: ingestion, preprocessing, hyperparameter tuning, "
-        "model training, evaluation, and artifact export — all in a single click."
-    )
+Please do the following:
 
-    # ── SAFE GUARD (DO NOT BLOCK AFTER TRAINING) ───────────────────────────────
-    if not st.session_state.get("trained", False):
-        if st.session_state.get("df") is None or st.session_state.get("target_col") is None:
-            st.warning("Upload data and set a target column in Configuration before training.")
-            st.stop()
+1. Explain briefly what feature leakage is and why it is dangerous in AutoML.
+2. Design a fast, lightweight leakage detection module that runs BEFORE model training.
+3. The module should:
+   - Detect features that are highly correlated with the target
+   - Detect target-derived or post-outcome features
+   - Flag suspicious features using correlation, mutual information, or name-based heuristics
+4. The detection must work for:
+   - Numeric features
+   - Categorical features
+   - Text features (basic checks)
+5. The outcome should be:
+   - A list of suspected leakage features
+   - A warning or hard-block option before training starts
+6. The solution must:
+   - Be model-agnostic
+   - Add minimal overhead to training time
+   - Integrate cleanly into an AutoML pipeline
 
-    # ── INIT FLAGS ────────────────────────────────────────────────────────────
-    if "run_training" not in st.session_state:
-        st.session_state.run_training = False
-
-    col_ctrl, col_log = st.columns([1, 2])
-
-    with col_ctrl:
-        tc   = st.session_state.target_col
-        sel  = st.session_state.get("selected_models", [])
-        tune = st.session_state.get("tune_enabled", True)
-
-        from src.models.registry import get_available_models
-        if not sel:
-            sel = get_available_models()[:5]
-
-        section("Pipeline Configuration")
-        st.markdown(f"""
-        <div style="background:#0f1118; border:1px solid #1e2535; border-radius:6px; padding:14px;">
-          <div style="display:flex; justify-content:space-between;">
-            <span>Dataset</span>
-            <span>{st.session_state.df.shape[0]:,} x {st.session_state.df.shape[1]}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span>Target</span>
-            <span>{tc}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span>Models</span>
-            <span>{len(sel)}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span>Tuning</span>
-            <span>{"Enabled" if tune else "Disabled"}</span>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.caption("Models: " + ", ".join(sel))
-
-        run_btn = st.button("Run AutoML Pipeline", use_container_width=True, type="primary")
-
-        # 🔥 Trigger flag instead of direct execution
-        if run_btn:
-            st.session_state.run_training = True
-
-    with col_log:
-        section("Execution Log")
-        logs = st.session_state.get("training_logs", [])
-        log_placeholder = st.empty()
-
-        if logs:
-            log_html = "<br>".join(f"✔ {l}" for l in logs[-15:])
-        else:
-            log_html = "Pipeline output will appear here..."
-
-        log_placeholder.markdown(f"<div class='log-box'>{log_html}</div>", unsafe_allow_html=True)
-
-    # ── PIPELINE EXECUTION ────────────────────────────────────────────────────
-    if st.session_state.run_training:
-
-        import time, json
-        from pathlib import Path
-
-        st.session_state.training_logs = []
-        st.session_state.tuner_obj = None
-
-        pb   = st.progress(0)
-        stxt = st.empty()
-        logs = []
-
-        def cb(msg, pct):
-            logs.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
-            st.session_state.training_logs = logs
-            pb.progress(pct / 100)
-            stxt.markdown(f"**{msg}**")
-
-            log_html = "<br>".join(f"✔ {l}" for l in logs[-15:])
-            log_placeholder.markdown(f"<div class='log-box'>{log_html}</div>", unsafe_allow_html=True)
-
-        try:
-            # ── CONFIG ─────────────────────────────────────────────
-            cp = "config/config.yaml"
-            if not Path(cp).exists():
-                import yaml
-                Path("config").mkdir(exist_ok=True)
-                with open(cp, "w") as f:
-                    yaml.dump({
-                        "project": {"name": "AutoML", "random_state": 42},
-                        "data": {"test_size": 0.2},
-                        "models": {"enabled": sel},
-                        "tuning": {"enabled": tune, "n_trials": 20},
-                        "evaluation": {"metrics": ["accuracy", "f1_weighted"]}
-                    }, f)
-
-            from src.utils.config_loader import load_config
-            cfg = load_config(cp)
-
-            # ── SAVE DATA ─────────────────────────────────────────
-            tmp = "data/raw/_upload.csv"
-            Path("data/raw").mkdir(parents=True, exist_ok=True)
-            st.session_state.df.to_csv(tmp, index=False)
-
-            # ── IMPORTS ───────────────────────────────────────────
-            from src.ingestion.data_loader import DataIngestion
-            from src.preprocessing.pipeline import PreprocessingPipeline
-            from src.models.trainer import ModelTrainer
-            from src.models.selector import ModelSelector
-            from src.evaluation.evaluator import ModelEvaluator
-            from sklearn.model_selection import train_test_split
-
-            # ── INGEST ────────────────────────────────────────────
-            cb("Ingesting data...", 5)
-            ing = DataIngestion(cfg)
-            df_in, col_type_map, _ = ing.run(tmp, tc)
-
-            # ── PREPROCESS ───────────────────────────────────────
-            cb("Preprocessing...", 20)
-            pp = PreprocessingPipeline(cfg)
-            X, y = pp.fit_transform(
-                df_in,
-                tc,
-                col_type_map.get("numeric", []),
-                col_type_map.get("categorical", [])
-            )
-
-            # ── SPLIT ────────────────────────────────────────────
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.2, random_state=42, stratify=y
-            )
-
-            # ── TRAIN ────────────────────────────────────────────
-            cb("Training models...", 50)
-            tr = ModelTrainer(cfg)
-            models = tr.train_all(X_train, y_train, sel)
-
-            # ── EVALUATE ─────────────────────────────────────────
-            cb("Evaluating models...", 70)
-            ev = ModelEvaluator(cfg)
-            leaderboard = ev.compare_models(models, X_test, y_test)
-
-            # ── SELECT BEST ─────────────────────────────────────
-            cb("Selecting best model...", 85)
-            sl = ModelSelector(cfg)
-            best_name, best_model = sl.select(models, leaderboard)
-
-            # ── SAVE STATE ──────────────────────────────────────
-            st.session_state.update({
-                "trained": True,
-                "leaderboard": leaderboard,
-                "best_model": best_model,
-                "best_model_name": best_name,
-                "preprocessor": pp,
-                "X_test": X_test,
-                "y_test": y_test,
-                "trained_models": models
-            })
-
-            cb("Pipeline complete.", 100)
-            st.success(f"Training complete. Champion model: {best_name}")
-
-        except Exception as e:
-            import traceback
-            st.error(f"Pipeline error: {e}")
-            st.code(traceback.format_exc())
-
-        # 🔥 CRITICAL: stop retriggering
-        st.session_state.run_training = False
-
-    # ── ALWAYS SHOW RESULTS ───────────────────────────────────────────────────
-    if st.session_state.get("trained", False):
-
-        st.divider()
-        render_model_performance()
-
-        st.divider()
-        render_explainability()
-
-        st.divider()
-        render_hyperparameter_log()
-
-        st.divider()
-        render_model_card()
+Do NOT use heavy models for detection.
+Prefer fast statistical checks and heuristics.
+Provide a clean design that can scale to many datasets.
