@@ -1,0 +1,88 @@
+You are an industry analyst and ML systems architect.
+
+Write a detailed INDUSTRY VERTICAL WRITE‑UP for the following project:
+
+Project Title:
+Reusable AutoML Classification Framework with Explainability
+
+Problem Statement:
+Data science teams repeatedly build classification models from scratch for each business problem, spending 60–70% of effort on boilerplate tasks such as data preparation, feature engineering, model selection, hyperparameter tuning, and evaluation. There is no reusable, modular framework that abstracts these steps while remaining configurable per problem. Additionally, model outputs lack business‑interpretable explanations, creating adoption resistance from business stakeholders and compliance friction in regulated environments (e.g., SR 11‑7 model risk management).
+
+Target Industry Vertical:
+Financial Services (FinServ)
+
+Sub‑Verticals to Cover:
+1. Payments (fraud detection, chargebacks)
+2. Banking (credit scoring, AML, churn)
+3. Financial Services – Insurance, Wealth Management, Capital Markets
+
+Write the document as an enterprise‑grade, regulator‑aware analysis.
+
+STRUCTURE THE WRITE‑UP EXACTLY AS FOLLOWS:
+
+1. Industry Overview & Market Context  
+   - Scale and importance of the financial services industry  
+   - Why machine learning and classification models are critical  
+   - Data intensity and decision volume in FinServ  
+
+2. Sub‑Vertical Landscape  
+   For each sub‑vertical (Payments, Banking, FS):
+   - How the industry works operationally  
+   - Typical classification problems  
+   - Data scale and latency requirements  
+   - Regulatory and business constraints  
+   - Why reusable ML infrastructure is valuable  
+
+3. Regulatory Environment  
+   - SR 11‑7 and model risk management  
+   - Explainability requirements (ECOA/FCRA concepts)  
+   - India context: RBI guidelines and DPDP Act  
+   - Why explainability and auditability are mandatory  
+
+4. How the Project Fits into Industry Workflows  
+   - Describe the traditional ML workflow in industry  
+   - Identify inefficiencies and bottlenecks  
+   - Explain exactly where this framework plugs in  
+   - Show how it reduces cycle time and risk  
+
+5. Problems the Project Solves  
+   - Boilerplate repetition  
+   - Long model delivery timelines  
+   - Lack of explainability  
+   - Compliance and audit friction  
+   - Deployment gaps  
+
+6. Problems the Project Does NOT Solve (Explicitly Call These Out)  
+   - Business decision ownership  
+   - Data quality issues  
+   - Concept drift and monitoring  
+   - Regulatory approval automation  
+   Explain why excluding these is appropriate and realistic  
+
+7. Business Impact  
+   - Time savings per project  
+   - Capacity recovery in person‑weeks  
+   - Productivity gains for senior data scientists  
+   - Adoption benefits for business and compliance teams  
+
+8. Role of Explainability  
+   - SHAP/LIME in simple business terms  
+   - How explanations improve trust and compliance  
+   - Why this is critical in FinServ  
+
+9. Strategic Importance of the Framework  
+   - Why FinServ is the hardest validation ground  
+   - Why success here implies cross‑industry applicability  
+
+10. Simple Flow Diagram Explanation (Textual)  
+    - Industry data → framework → model → explanation → deployment  
+
+TONE & STYLE REQUIREMENTS:
+- Professional but clear
+- Industry‑oriented (not academic only)
+- Avoid unnecessary math
+- Use simple explanations where possible
+- Write as if submitting to a review panel or leadership committee
+
+OUTPUT LENGTH:
+- Long‑form, detailed, structured document
