@@ -1,87 +1,11 @@
-I am building a hypothesis‑driven Explainable AutoML classification framework.
+Convert an existing Streamlit-based dashboard into a React frontend.
 
-I faced the following problem and I want you to understand it correctly:
+The React application should:
+- Be UI-only (no business or ML logic in the frontend)
+- Communicate with an existing Python backend using REST APIs
+- Replicate the same user flows, pages, and visualizations present in Streamlit
+- Follow best practices for modern React (functional components, hooks)
 
-PROBLEM CONTEXT
----------------
-My pipeline is designed to trigger Feature Engineering only when
-hypothesis testing shows insufficient feature signal.
-
-However, during testing, Feature Engineering triggered but produced
-ZERO new features, and the pipeline later failed with:
-"No feature columns found after preprocessing."
-
-ROOT CAUSE (IMPORTANT)
-----------------------
-This happened because all numeric features were dropped too early
-during data ingestion / profiling.
-
-The early ingestion stage removed weak numeric features based on
-standalone predictive value, leaving only the target column.
-As a result:
-  • Hypothesis Testing had 0 features to test
-  • Feature Engineering had no raw features to engineer
-  • No interaction / polynomial / transform features could be created
-
-This is NOT a bug in Feature Engineering or Hypothesis Testing.
-It is a stage‑responsibility issue where weak features were removed
-before Feature Engineering had a chance to combine them.
-
-CORRECT DESIGN INTENT
----------------------
-Weak numeric features must be preserved UNTIL the Feature Engineering
-decision is made.
-
-Feature Engineering exists exactly to create signal from weak
-individual features through:
-  • interactions
-  • non‑linear transforms
-  • binning
-  • encodings
-
-Therefore:
-  • Early ingestion should ONLY drop:
-        - ID columns
-        - constant columns
-        - confirmed leakage features
-  • Weak numeric features must NOT be dropped before FE
-
-
-DRIFT (NEW REQUIREMENT)
------------------------
-I also want to add DRIFT monitoring to this system.
-
-Drift means that incoming production data distributions differ
-from the original training data.
-
-Drift detection must:
-  • Run AFTER deployment (not during training)
-  • Compare new data vs training baseline
-  • Detect:
-        - Data Drift (feature distribution change)
-  • Not auto‑retrain models
-  • Raise warnings and recommend retraining instead
-
-Drift should be placed as:
-  "Monitoring & Drift Detection" stage AFTER deployment.
-
-DRIFT OUTPUT SHOULD INCLUDE
----------------------------
-  • Drift status: OK / WARNING
-  • Features with drift
-  • Severity score (e.g. PSI / KS)
-  • Recommendation:
-        - monitor
-        - retrain
-
-GOAL
-----
-The pipeline must be:
-  • Hypothesis‑driven
-  • Feature‑engineering‑adaptive
-  • Explainable
-  • Governance‑ready (SR 11‑7 aligned)
-  • Robust to drift after deployment
-
-Please reason about this pipeline assuming the above design is
-intentional and correct.
+Do not rewrite backend logic or algorithms.
+Assume the backend already exposes the required APIs.
+Focus on clean component design, API integration, loading/error states, and a production-ready UI structure.
