@@ -1,106 +1,96 @@
-I have built a reusable AutoML framework that trains, tunes, evaluates, and explains multiple ML models automatically.
-I want to enhance it to be production‑ready, compliant, and safe for non‑expert users.
+You are a senior frontend engineer and ML platform architect.
 
-Please implement the following enhancements end‑to‑end, integrated cleanly into the existing AutoML pipeline:
+I have an existing ML system UI implemented in Streamlit. The backend logic,
+ML pipelines, drift detection, and explainability are already implemented in Python
+and MUST NOT be re-written.
 
-────────────────────────────────────────────
-1. Feature Leakage Detection (MANDATORY)
-────────────────────────────────────────────
-Before training any model, add a mandatory feature leakage detection step.
+Your task is to convert the Streamlit-based dashboard into a modern React
+frontend while keeping the backend unchanged.
 
-The system must:
-- Automatically detect target‑correlated features (numeric, categorical, text)
-- Flag features with suspiciously high correlation or mutual information with the target
-- Detect future/post‑outcome or target‑derived features
-- Include simple name‑based heuristics (e.g., columns containing words like target, label, result, outcome)
-- Work without training heavy models
+==============================
+PROJECT CONTEXT
+==============================
 
-Output:
-- List of suspected leakage features
-- Either warn the user or block training based on severity
+Backend:
+- Python-based AutoML pipeline
+- Hypothesis-driven feature selection and feature engineering
+- Model training, evaluation, SHAP explainability
+- Drift detection using PSI, KS-test, and Chi-square
+- SR 11-7 aligned (no auto-retraining, alert-only monitoring)
+- Backend will be exposed via REST APIs (FastAPI / Flask)
 
-Constraints:
-- Must be fast
-- Model‑agnostic
-- Must run BEFORE AutoML training starts
+Frontend (CURRENT):
+- Implemented in Streamlit
+- Pages include:
+  1. Data Upload & Profiling
+  2. Training & Model Selection
+  3. Model Performance Dashboard
+  4. Explainability (SHAP, PDP/ICE)
+  5. Monitoring & Drift Detection
 
-────────────────────────────────────────────
-2. Invertible Preprocessing for Data Lineage (C3 Compliance)
-────────────────────────────────────────────
-Ensure all preprocessing steps are fully invertible and auditable for data lineage compliance.
+Frontend (TARGET):
+- React (prefer Vite + React)
+- UI-only responsibility
+- Calls backend APIs using HTTP (fetch / axios)
+- No ML logic in frontend
 
-Requirements:
-- All preprocessing must be implemented inside versioned sklearn Pipelines / ColumnTransformers
-- No manual feature transformations outside the pipeline
-- Transformation parameters (scalers, encoders, vocabularies) must be persisted
-- Feature names must be traceable back to original raw columns
-- Raw data must never be overwritten
+==============================
+WHAT YOU SHOULD PRODUCE
+==============================
 
-Goal:
-- Every transformed feature must be explainable in terms of its raw data origin
-- The preprocessing pipeline must be reproducible and auditable
+1. ✅ A proposed React project structure, including:
+   - pages/
+   - components/
+   - services/
+   - hooks/ (if needed)
 
-────────────────────────────────────────────
-3. Mandatory SHAP Explainability with Model‑Aware Selection
-────────────────────────────────────────────
-SHAP explanations are mandatory for all trained models.
+2. ✅ A clear mapping from Streamlit pages to React pages, for example:
+   - Streamlit "Training" page → React TrainingPage.jsx
+   - Streamlit "Monitoring & Drift" → React DriftMonitoringPage.jsx
 
-Implement a SHAP explainer factory that:
-- Automatically selects optimized explainers:
-  - TreeExplainer for tree‑based models
-  - LinearExplainer for linear and Naive Bayes models
-  - KernelExplainer (wrapper) for models without native SHAP support (e.g., SVM, KNN, MLP)
-- Clearly indicates when explanations are approximate
+3. ✅ API contract examples (request/response JSON)
+   - /train
+   - /predict
+   - /monitor/drift
+   - /results
 
-────────────────────────────────────────────
-4. Explainability Latency Optimization via SHAP Caching
-────────────────────────────────────────────
-Optimize explainability latency by caching SHAP results.
+4. ✅ Example React components (JSX only, no backend code):
+   - File upload component
+   - Button-triggered API call
+   - Metrics cards (accuracy, F1, precision, recall)
+   - Drift status banners (OK / WARNING / CRITICAL)
+   - Tables for model leaderboard and drifted features
 
-Requirements:
-- Compute SHAP only once per trained model
-- Cache global explanations (feature importance) and batch explanations
-- Reuse cached SHAP results for UI rendering and downloads
-- Limit per‑instance SHAP computation for slow (wrapper‑based) models
-- Avoid recomputing SHAP on repeated UI actions
+5. ✅ Recommended React libraries:
+   - UI framework (MUI / Ant Design / Chakra)
+   - Charts (Recharts / Plotly / ECharts)
+   - API calls (axios)
 
-Goal:
-- Low‑latency explainability even for large datasets and complex models
+6. ✅ Best practices to follow:
+   - Environment variables for backend URLs
+   - Loading + error states
+   - No silent failures
+   - No auto-retraining triggered from UI
+   - Human-in-the-loop alerts only (SR 11-7)
 
-────────────────────────────────────────────
-5. Guardrails Against Misuse by Non‑Experts
-────────────────────────────────────────────
-Add guardrails to prevent incorrect interpretation or misuse of the AutoML framework by non‑expert users.
+==============================
+IMPORTANT CONSTRAINTS
+==============================
 
-Guardrails should include:
-- Automatic warnings when:
-  - Dataset is very small or highly imbalanced
-  - Model assumptions may be violated
-  - SHAP explanations are approximate
-- Sensible defaults (CV strategy, early stopping, metrics)
-- Limits on expensive operations (e.g., Kernel SHAP batch size)
-- Clear user‑facing messages explaining limitations
+- DO NOT rewrite ML logic
+- DO NOT reimplement drift algorithms in frontend
+- DO NOT depend on Streamlit
+- DO NOT add authentication unless explicitly requested
+- Focus on clear UI, composable components, and API-driven design
 
-────────────────────────────────────────────
-6. Contextual Documentation & Responsible AI Messaging
-────────────────────────────────────────────
-Provide lightweight, contextual documentation directly inside the framework.
+==============================
+OUTPUT FORMAT
+==============================
 
-Include:
-- Inline explanations of metrics and model choices
-- Model cards summarizing:
-  - When the model works well
-  - Known limitations
-  - Interpretability caveats
-- Just‑in‑time tooltips instead of heavy docs
+- Explain the design decisions
+- Provide clean JSX snippets
+- Use modern React (hooks, functional components)
+- Keep explanations concise and practical
 
-────────────────────────────────────────────
-Implementation constraints:
-- Must not significantly increase training time
-- Must be modular and reusable across datasets
-- Must integrate cleanly into an AutoML pipeline
-- Prefer fast statistical checks and heuristics
-- Avoid over‑engineering or heavy external dependencies
-
-Explain briefly WHY each component is necessary and HOW it improves reliability, trust, and production readiness.
+Assume the reader understands Python ML but is new to React.
 ``
