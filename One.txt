@@ -46,36 +46,6 @@ Therefore:
         - confirmed leakage features
   • Weak numeric features must NOT be dropped before FE
 
-UPDATED PIPELINE FLOW (AUTHORITATIVE)
--------------------------------------
-1. Data Ingestion & Validation
-   - Load data
-   - Detect numeric / categorical columns
-   - Handle missing values
-   - Perform FEATURE LEAKAGE SCAN
-   - Drop only ID / constant / leaked columns
-   - Preserve weak numeric features
-
-2. Hypothesis Testing (PRE‑CONFIG)
-   - Identify statistically significant features
-   - Compute significant feature ratio
-
-3. Feature Engineering (CONDITIONAL)
-   - Triggered if significant_feature_ratio < threshold
-   - Create interaction, polynomial, transform, binning, encoding features
-
-4. Re‑run Hypothesis Testing (POST‑FE)
-   - Validate engineered features
-
-5. Dynamic Configuration
-6. Preprocessing
-7. Train/Test Split
-8. Hyperparameter Tuning
-9. Model Training
-10. Evaluation
-11. Statistical Model Comparison (McNemar – post training only)
-12. SHAP Explainability
-13. Results returned to UI
 
 DRIFT (NEW REQUIREMENT)
 -----------------------
