@@ -1,26 +1,117 @@
-I have built a reusable AutoML framework that trains and tunes multiple models automatically.
-Before training, I want to add a mandatory Feature Leakage Detection step.
+I am building a hypothesis‑driven Explainable AutoML classification framework.
 
-Please do the following:
+I faced the following problem and I want you to understand it correctly:
 
-1. Explain briefly what feature leakage is and why it is dangerous in AutoML.
-2. Design a fast, lightweight leakage detection module that runs BEFORE model training.
-3. The module should:
-   - Detect features that are highly correlated with the target
-   - Detect target-derived or post-outcome features
-   - Flag suspicious features using correlation, mutual information, or name-based heuristics
-4. The detection must work for:
-   - Numeric features
-   - Categorical features
-   - Text features (basic checks)
-5. The outcome should be:
-   - A list of suspected leakage features
-   - A warning or hard-block option before training starts
-6. The solution must:
-   - Be model-agnostic
-   - Add minimal overhead to training time
-   - Integrate cleanly into an AutoML pipeline
+PROBLEM CONTEXT
+---------------
+My pipeline is designed to trigger Feature Engineering only when
+hypothesis testing shows insufficient feature signal.
 
-Do NOT use heavy models for detection.
-Prefer fast statistical checks and heuristics.
-Provide a clean design that can scale to many datasets.
+However, during testing, Feature Engineering triggered but produced
+ZERO new features, and the pipeline later failed with:
+"No feature columns found after preprocessing."
+
+ROOT CAUSE (IMPORTANT)
+----------------------
+This happened because all numeric features were dropped too early
+during data ingestion / profiling.
+
+The early ingestion stage removed weak numeric features based on
+standalone predictive value, leaving only the target column.
+As a result:
+  • Hypothesis Testing had 0 features to test
+  • Feature Engineering had no raw features to engineer
+  • No interaction / polynomial / transform features could be created
+
+This is NOT a bug in Feature Engineering or Hypothesis Testing.
+It is a stage‑responsibility issue where weak features were removed
+before Feature Engineering had a chance to combine them.
+
+CORRECT DESIGN INTENT
+---------------------
+Weak numeric features must be preserved UNTIL the Feature Engineering
+decision is made.
+
+Feature Engineering exists exactly to create signal from weak
+individual features through:
+  • interactions
+  • non‑linear transforms
+  • binning
+  • encodings
+
+Therefore:
+  • Early ingestion should ONLY drop:
+        - ID columns
+        - constant columns
+        - confirmed leakage features
+  • Weak numeric features must NOT be dropped before FE
+
+UPDATED PIPELINE FLOW (AUTHORITATIVE)
+-------------------------------------
+1. Data Ingestion & Validation
+   - Load data
+   - Detect numeric / categorical columns
+   - Handle missing values
+   - Perform FEATURE LEAKAGE SCAN
+   - Drop only ID / constant / leaked columns
+   - Preserve weak numeric features
+
+2. Hypothesis Testing (PRE‑CONFIG)
+   - Identify statistically significant features
+   - Compute significant feature ratio
+
+3. Feature Engineering (CONDITIONAL)
+   - Triggered if significant_feature_ratio < threshold
+   - Create interaction, polynomial, transform, binning, encoding features
+
+4. Re‑run Hypothesis Testing (POST‑FE)
+   - Validate engineered features
+
+5. Dynamic Configuration
+6. Preprocessing
+7. Train/Test Split
+8. Hyperparameter Tuning
+9. Model Training
+10. Evaluation
+11. Statistical Model Comparison (McNemar – post training only)
+12. SHAP Explainability
+13. Results returned to UI
+
+DRIFT (NEW REQUIREMENT)
+-----------------------
+I also want to add DRIFT monitoring to this system.
+
+Drift means that incoming production data distributions differ
+from the original training data.
+
+Drift detection must:
+  • Run AFTER deployment (not during training)
+  • Compare new data vs training baseline
+  • Detect:
+        - Data Drift (feature distribution change)
+  • Not auto‑retrain models
+  • Raise warnings and recommend retraining instead
+
+Drift should be placed as:
+  "Monitoring & Drift Detection" stage AFTER deployment.
+
+DRIFT OUTPUT SHOULD INCLUDE
+---------------------------
+  • Drift status: OK / WARNING
+  • Features with drift
+  • Severity score (e.g. PSI / KS)
+  • Recommendation:
+        - monitor
+        - retrain
+
+GOAL
+----
+The pipeline must be:
+  • Hypothesis‑driven
+  • Feature‑engineering‑adaptive
+  • Explainable
+  • Governance‑ready (SR 11‑7 aligned)
+  • Robust to drift after deployment
+
+Please reason about this pipeline assuming the above design is
+intentional and correct.
