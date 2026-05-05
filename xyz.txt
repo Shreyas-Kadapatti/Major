@@ -1,96 +1,23 @@
-You are a senior frontend engineer and ML platform architect.
+I am building an AutoML training pipeline where multiple scikit-learn models are trained, tuned, and evaluated.
 
-I have an existing ML system UI implemented in Streamlit. The backend logic,
-ML pipelines, drift detection, and explainability are already implemented in Python
-and MUST NOT be re-written.
+I configured the pipeline to train 6 models, but only 4 models appear in the final leaderboard and evaluation results.
 
-Your task is to convert the Streamlit-based dashboard into a modern React
-frontend while keeping the backend unchanged.
+During training, the logs show that two models failed with parameter validation errors:
+- ridge_classifier failed due to an invalid parameter passed to a CalibratedClassifierCV wrapper.
+- passive_aggressive failed because a parameter (C) was passed to an SGDClassifier, where it is not valid.
 
-==============================
-PROJECT CONTEXT
-==============================
+The pipeline correctly:
+- Logs these training failures
+- Skips the failed models
+- Continues training and evaluation with the remaining models
+- Shows only successfully trained models in the leaderboard and downstream analysis
 
-Backend:
-- Python-based AutoML pipeline
-- Hypothesis-driven feature selection and feature engineering
-- Model training, evaluation, SHAP explainability
-- Drift detection using PSI, KS-test, and Chi-square
-- SR 11-7 aligned (no auto-retraining, alert-only monitoring)
-- Backend will be exposed via REST APIs (FastAPI / Flask)
+However, in the hyperparameter tuning summary, all 6 models appear, with the failed ones showing a score of 0.0.
 
-Frontend (CURRENT):
-- Implemented in Streamlit
-- Pages include:
-  1. Data Upload & Profiling
-  2. Training & Model Selection
-  3. Model Performance Dashboard
-  4. Explainability (SHAP, PDP/ICE)
-  5. Monitoring & Drift Detection
+Please explain:
+1. Why only 4 models appear in the final results even though 6 were provided
+2. Why failed models still appear in the tuning summary
+3. Whether this behavior is correct for a robust AutoML system
+4. What changes should be made to ensure all 6 models can be trained successfully
 
-Frontend (TARGET):
-- React (prefer Vite + React)
-- UI-only responsibility
-- Calls backend APIs using HTTP (fetch / axios)
-- No ML logic in frontend
-
-==============================
-WHAT YOU SHOULD PRODUCE
-==============================
-
-1. ✅ A proposed React project structure, including:
-   - pages/
-   - components/
-   - services/
-   - hooks/ (if needed)
-
-2. ✅ A clear mapping from Streamlit pages to React pages, for example:
-   - Streamlit "Training" page → React TrainingPage.jsx
-   - Streamlit "Monitoring & Drift" → React DriftMonitoringPage.jsx
-
-3. ✅ API contract examples (request/response JSON)
-   - /train
-   - /predict
-   - /monitor/drift
-   - /results
-
-4. ✅ Example React components (JSX only, no backend code):
-   - File upload component
-   - Button-triggered API call
-   - Metrics cards (accuracy, F1, precision, recall)
-   - Drift status banners (OK / WARNING / CRITICAL)
-   - Tables for model leaderboard and drifted features
-
-5. ✅ Recommended React libraries:
-   - UI framework (MUI / Ant Design / Chakra)
-   - Charts (Recharts / Plotly / ECharts)
-   - API calls (axios)
-
-6. ✅ Best practices to follow:
-   - Environment variables for backend URLs
-   - Loading + error states
-   - No silent failures
-   - No auto-retraining triggered from UI
-   - Human-in-the-loop alerts only (SR 11-7)
-
-==============================
-IMPORTANT CONSTRAINTS
-==============================
-
-- DO NOT rewrite ML logic
-- DO NOT reimplement drift algorithms in frontend
-- DO NOT depend on Streamlit
-- DO NOT add authentication unless explicitly requested
-- Focus on clear UI, composable components, and API-driven design
-
-==============================
-OUTPUT FORMAT
-==============================
-
-- Explain the design decisions
-- Provide clean JSX snippets
-- Use modern React (hooks, functional components)
-- Keep explanations concise and practical
-
-Assume the reader understands Python ML but is new to React.
-``
+Assume the goal is production‑grade robustness and not forcing failed models to continue.
