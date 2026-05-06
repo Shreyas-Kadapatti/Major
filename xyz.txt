@@ -1,23 +1,26 @@
-I am building an AutoML training pipeline where multiple scikit-learn models are trained, tuned, and evaluated.
+I am building an AutoML pipeline with hypothesis-driven feature selection followed by optional feature engineering.
 
-I configured the pipeline to train 6 models, but only 4 models appear in the final leaderboard and evaluation results.
+I encountered a prediction-time failure caused by feature engineering and feature selection interacting incorrectly.
 
-During training, the logs show that two models failed with parameter validation errors:
-- ridge_classifier failed due to an invalid parameter passed to a CalibratedClassifierCV wrapper.
-- passive_aggressive failed because a parameter (C) was passed to an SGDClassifier, where it is not valid.
+Here is the core issue:
 
-The pipeline correctly:
-- Logs these training failures
-- Skips the failed models
-- Continues training and evaluation with the remaining models
-- Shows only successfully trained models in the leaderboard and downstream analysis
+- During training, hypothesis testing removed some raw features (e.g., x1, x2, x4) because they were statistically insignificant.
+- Feature engineering was then applied and created new features that *depend on those removed raw features* (e.g., x1_x_x2 depends on x1 and x2).
+- The preprocessing pipeline was fitted successfully on the engineered feature set.
+- At inference time, the pipeline fails because the engineered features cannot be derived—their parent raw features were dropped earlier.
 
-However, in the hyperparameter tuning summary, all 6 models appear, with the failed ones showing a score of 0.0.
+This results in errors like:
+"ValueError: columns are missing: {'x1_x_x2', 'x2_x_x5', ...}"
 
-Please explain:
-1. Why only 4 models appear in the final results even though 6 were provided
-2. Why failed models still appear in the tuning summary
-3. Whether this behavior is correct for a robust AutoML system
-4. What changes should be made to ensure all 6 models can be trained successfully
+Key constraints:
+- Users must provide only raw input features (engineered features are internal).
+- Feature engineering must happen inside the pipeline, not in the UI.
+- The system must remain production-grade and consistent between training and inference.
 
-Assume the goal is production‑grade robustness and not forcing failed models to continue.
+Please:
+1. Explain why removing raw features before feature engineering causes this failure.
+2. Propose a correct pipeline ordering that preserves feature dependencies.
+3. Suggest design patterns or guardrails to prevent this issue in AutoML systems.
+4. Optionally suggest a pragmatic short-term fix, but clearly distinguish it from the clean long-term design.
+
+Assume scikit-learn pipelines and ColumnTransformer are being used.
