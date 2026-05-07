@@ -1,75 +1,69 @@
-You are a senior Python + FastAPI + ML engineer.
+I need you to UPDATE THE SYSTEM by fixing the issues described below.
+Please implement the changes directly and explain briefly what you changed.
 
-I have an existing FastAPI backend that currently supports ONLY inference:
-- Loads model + preprocessor on startup
-- Endpoints: /predict, /predict/batch, /health, /model/info, /reload
-- Uses sklearn, a saved preprocessor, and a trained model
-- Has PredictionRequest with `features` and `explain` fields
+=====================================
+PROBLEM 1 — UI TEXT LOOKS TOO GREY
+=====================================
 
-I want to EXTEND this SAME backend (not rewrite it) to support the FULL AutoML lifecycle used by my frontend.
+Across my entire Streamlit UI, most text appears grey and low-contrast:
+- Section descriptions
+- Helper/instructional text
+- Sidebar navigation labels
+- Tab labels
+- Status indicators
 
-I need you to:
+This makes the UI look dim and slightly hard to read, especially on a dark background.
+Important text does not stand out clearly from secondary or inactive text.
 
-1. Keep all existing inference functionality unchanged and working.
-2. Add pipeline lifecycle management using in‑memory state (PipelineState pattern).
-3. Add the following API endpoints to the same FastAPI app:
+TASK:
+- Adjust the UI so general readable text appears slightly whiter/brighter.
+- Maintain a professional dark-theme look (not pure white everywhere).
+- Keep disabled/placeholder text dimmer than regular content.
+- Apply changes globally instead of per-component styling.
 
-PIPELINE:
-- POST /upload-data        (CSV/XLSX upload)
-- POST /run-pipeline       (run AutoML training pipeline)
-- GET  /pipeline-status    (progress, running, error)
-- GET  /health             (show both inference and pipeline readiness)
+Implement this using Streamlit-compatible global styling or theming.
+Avoid hacky per-widget fixes.
 
-RESULTS:
-- GET /hypothesis          (hypothesis testing results)
-- GET /models              (leaderboard, best model, trained models)
-- GET /comparison          (McNemar or model comparison)
-- POST /drift              (upload production data → drift detection)
+=====================================
+PROBLEM 2 — MODEL CARD HTML EXPORT IS BROKEN
+=====================================
 
-PREDICTION:
-- POST /predict            (already exists — keep)
-- POST /batch-predict      (CSV batch prediction)
+The Model Card is generated using Markdown:
+- In the UI preview, it looks fine.
+- When downloaded as HTML and opened in a browser, it shows raw Markdown:
+  - Headings like ## are visible
+  - Tables show | characters
+  - Code formatting is not rendered
 
-4. Introduce a clean PipelineState object that tracks:
-- data_loaded
-- is_trained
-- running
-- progress
-- pipeline_result
-- error
+At the same time, the Performance Report HTML is styled perfectly and looks professional.
 
-5. The training pipeline is already implemented as:
-- TrainingPipeline.run(file_path, target_col, model_names, tune, callback)
+This creates inconsistency and makes the Model Card feel unfinished.
 
-Wire this pipeline into /run-pipeline.
+ROOT CAUSE CONTEXT:
+- Model Card HTML is currently produced by manually manipulating Markdown text (regex-style or direct write).
+- The Performance Report uses real HTML generation and CSS styling.
 
-6. After training completes:
-- Save results into PipelineState
-- Load the trained model artifacts into the existing inference service
-- Ensure prediction endpoints immediately use the newly trained model
+TASK:
+- Fix the backend so Model Card HTML is generated properly and matches the quality of the Performance Report.
+- Convert Markdown to real HTML using a correct rendering approach.
+- Wrap the result in a styled HTML template.
+- Ensure tables, headings, lists, and code blocks render correctly.
+- Do NOT regenerate the model card inside the UI.
 
-7. Implement endpoints in a production‑safe way:
-- Proper error handling
-- No global race conditions
-- Minimal refactoring
-- Clear separation between training (pipeline) and inference (prediction)
+ARCHITECTURAL RULES:
+- Backend generates Markdown + HTML once after training
+- UI only previews Markdown and downloads HTML
+- Do not change existing Performance Report logic
+- Keep changes minimal and clean
 
-8. Use FastAPI background tasks where appropriate for long‑running training.
+Also add some graphs in the performance report to make it look good
+=====================================
+WHAT I EXPECT FROM YOU
+=====================================
 
-9. Provide COMPLETE, runnable code for:
-- Updated `app.py`
-- PipelineState class
-- Any added helper functions
+1. Identify exactly where to update UI styling and apply global improvements.
+2. Update Model Card HTML generation so downloaded Model Cards render correctly.
+3. Provide the updated code where changes are needed.
+4. Briefly explain what was changed and why (short explanation).
 
-IMPORTANT:
-- Do NOT remove existing endpoints
-- Do NOT break `/predict`
-- Do NOT change request schemas unless necessary
-- Use clean, readable code with comments
-
-The final output should be a fully working FastAPI backend that supports BOTH:
-- AutoML pipeline orchestration
-- Production inference
-ADD PREDICTION SCHEMA IN THE BACKEND
-
-Explain briefly how the added endpoints integrate with the existing inference layer.
+Please make the updates directly rather than just suggesting ideas.
