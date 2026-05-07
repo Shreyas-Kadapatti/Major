@@ -1,26 +1,74 @@
-I am building an AutoML pipeline with hypothesis-driven feature selection followed by optional feature engineering.
+You are a senior Python + FastAPI + ML engineer.
 
-I encountered a prediction-time failure caused by feature engineering and feature selection interacting incorrectly.
+I have an existing FastAPI backend that currently supports ONLY inference:
+- Loads model + preprocessor on startup
+- Endpoints: /predict, /predict/batch, /health, /model/info, /reload
+- Uses sklearn, a saved preprocessor, and a trained model
+- Has PredictionRequest with `features` and `explain` fields
 
-Here is the core issue:
+I want to EXTEND this SAME backend (not rewrite it) to support the FULL AutoML lifecycle used by my frontend.
 
-- During training, hypothesis testing removed some raw features (e.g., x1, x2, x4) because they were statistically insignificant.
-- Feature engineering was then applied and created new features that *depend on those removed raw features* (e.g., x1_x_x2 depends on x1 and x2).
-- The preprocessing pipeline was fitted successfully on the engineered feature set.
-- At inference time, the pipeline fails because the engineered features cannot be derived—their parent raw features were dropped earlier.
+I need you to:
 
-This results in errors like:
-"ValueError: columns are missing: {'x1_x_x2', 'x2_x_x5', ...}"
+1. Keep all existing inference functionality unchanged and working.
+2. Add pipeline lifecycle management using in‑memory state (PipelineState pattern).
+3. Add the following API endpoints to the same FastAPI app:
 
-Key constraints:
-- Users must provide only raw input features (engineered features are internal).
-- Feature engineering must happen inside the pipeline, not in the UI.
-- The system must remain production-grade and consistent between training and inference.
+PIPELINE:
+- POST /upload-data        (CSV/XLSX upload)
+- POST /run-pipeline       (run AutoML training pipeline)
+- GET  /pipeline-status    (progress, running, error)
+- GET  /health             (show both inference and pipeline readiness)
 
-Please:
-1. Explain why removing raw features before feature engineering causes this failure.
-2. Propose a correct pipeline ordering that preserves feature dependencies.
-3. Suggest design patterns or guardrails to prevent this issue in AutoML systems.
-4. Optionally suggest a pragmatic short-term fix, but clearly distinguish it from the clean long-term design.
+RESULTS:
+- GET /hypothesis          (hypothesis testing results)
+- GET /models              (leaderboard, best model, trained models)
+- GET /comparison          (McNemar or model comparison)
+- POST /drift              (upload production data → drift detection)
 
-Assume scikit-learn pipelines and ColumnTransformer are being used.
+PREDICTION:
+- POST /predict            (already exists — keep)
+- POST /batch-predict      (CSV batch prediction)
+
+4. Introduce a clean PipelineState object that tracks:
+- data_loaded
+- is_trained
+- running
+- progress
+- pipeline_result
+- error
+
+5. The training pipeline is already implemented as:
+- TrainingPipeline.run(file_path, target_col, model_names, tune, callback)
+
+Wire this pipeline into /run-pipeline.
+
+6. After training completes:
+- Save results into PipelineState
+- Load the trained model artifacts into the existing inference service
+- Ensure prediction endpoints immediately use the newly trained model
+
+7. Implement endpoints in a production‑safe way:
+- Proper error handling
+- No global race conditions
+- Minimal refactoring
+- Clear separation between training (pipeline) and inference (prediction)
+
+8. Use FastAPI background tasks where appropriate for long‑running training.
+
+9. Provide COMPLETE, runnable code for:
+- Updated `app.py`
+- PipelineState class
+- Any added helper functions
+
+IMPORTANT:
+- Do NOT remove existing endpoints
+- Do NOT break `/predict`
+- Do NOT change request schemas unless necessary
+- Use clean, readable code with comments
+
+The final output should be a fully working FastAPI backend that supports BOTH:
+- AutoML pipeline orchestration
+- Production inference
+
+Explain briefly how the added endpoints integrate with the existing inference layer.
