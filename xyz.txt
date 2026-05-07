@@ -70,5 +70,6 @@ IMPORTANT:
 The final output should be a fully working FastAPI backend that supports BOTH:
 - AutoML pipeline orchestration
 - Production inference
+ADD PREDICTION SCHEMA IN THE BACKEND
 
 Explain briefly how the added endpoints integrate with the existing inference layer.
