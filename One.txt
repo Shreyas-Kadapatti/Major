@@ -1,11 +1,315 @@
-Convert an existing Streamlit-based dashboard into a React frontend.
+# Gap Analysis — automl_react_v1
 
-The React application should:
-- Be UI-only (no business or ML logic in the frontend)
-- Communicate with an existing Python backend using REST APIs
-- Replicate the same user flows, pages, and visualizations present in Streamlit
-- Follow best practices for modern React (functional components, hooks)
+A complete audit of what's working, what's missing, and what's broken compared to the full feature set from the original Streamlit dashboard.
 
-Do not rewrite backend logic or algorithms.
-Assume the backend already exposes the required APIs.
-Focus on clean component design, API integration, loading/error states, and a production-ready UI structure.
+---
+
+## Summary
+
+| Area | Status |
+|------|--------|
+| Backend API structure | ✅ Good foundation |
+| Data Upload page | ✅ Working |
+| Configuration page | ✅ Working |
+| Training page (basic) | ✅ Working |
+| Hypothesis page | ⚠️ Partially working |
+| Evaluation page | ❌ Major gaps |
+| Predictions page | ⚠️ Partially working |
+| Monitoring page | ⚠️ Partially working |
+| **Model Registry page** | ❌ **Completely missing** |
+| **Predictions route in nav** | ❌ **Missing from sidebar** |
+| SHAP / explainability charts | ❌ Not implemented |
+| Confusion matrix | ❌ Not implemented |
+| ROC curve | ❌ Not implemented |
+| Model card / performance report | ❌ Not implemented |
+| Artifact downloads (PKL, HTML, JSON) | ❌ No backend endpoints |
+| Workflow stepper (top progress bar) | ❌ Not implemented |
+| Live SSE log stream | ❌ Using polling (functional but laggy) |
+| State persistence on refresh | ❌ All state lost on browser refresh |
+
+---
+
+## GAP 1 — Predictions Page Is Not Routed
+
+**What's there:** `PredictionsPage.jsx` exists and is imported in `App.jsx`.
+
+**What's wrong:** There is **no route** for it. `App.jsx` has no `<Route path="/predictions" ...>`. The sidebar `NAV` array in `Layout.jsx` also has no entry for `/predictions`. The page is unreachable.
+
+**Fix needed:**
+```jsx
+// App.jsx — add:
+<Route path="/predictions" element={<PredictionsPage />} />
+
+// Layout.jsx NAV array — add:
+{ to: '/predictions', label: 'Predictions', icon: Zap }
+```
+
+---
+
+## GAP 2 — Model Registry Page Is Completely Missing
+
+**What's there:** Nothing.
+
+**What's missing:**
+- No `ModelRegistryPage.jsx` file
+- No `/registry` route in `App.jsx`
+- No `/registry` entry in the sidebar `NAV`
+- No `/registry/runs` backend endpoint in `main.py`
+- The original Streamlit dashboard had a full MLflow runs table with sortable columns and metric comparison
+
+**Fix needed:**
+- Add `GET /registry/runs` endpoint to `main.py` using `mlflow.search_runs(...)`
+- Create `ModelRegistryPage.jsx` with a sortable runs table (run name, model, metrics, timestamp, champion badge)
+- Add route and nav entry
+
+---
+
+## GAP 3 — No Artifact Download Endpoints
+
+**What's there:** Only `/batch-predict/download` (CSV download).
+
+**What's missing:** No backend endpoints to download trained model files or reports. The original Streamlit app let users download:
+- Champion model as `.pkl`
+- `performance_report.html`
+- `hypothesis_report.json`
+
+**Needed backend endpoints (none exist):**
+```
+GET /artifacts/champion-model     → streams models/best_model.pkl
+GET /artifacts/performance-report → streams models/performance_report.html  
+GET /artifacts/hypothesis-report  → streams models/hypothesis_report.json
+```
+
+**UI impact:** Training page has no download buttons. Users cannot export any trained artifact.
+
+---
+
+## GAP 4 — No SHAP / Explainability Charts
+
+**What's there:** `shap_enabled: True` in `_build_pipeline_config()`. The backend src has `shap_explainer.py`.
+
+**What's missing:**
+- The pipeline result dict does NOT include `shap_values` or `shap_feature_importance` — `training_pipeline.py`'s `_build_result()` method doesn't put SHAP data in the return dict
+- No `/shap` or `/explainability` endpoint in `main.py`
+- No SHAP bar chart component in the frontend
+- No LIME explanation table
+- The Training and Evaluation pages show zero explainability content
+
+**Fix needed:**
+1. Add SHAP computation to `_build_result()` in `training_pipeline.py` (or a new endpoint that computes it on demand)
+2. Add `GET /explainability` endpoint returning `{ shap_importance: {feature: value}, lime_weights: {feature: weight} }`
+3. Add `SHAPBarChart` component (horizontal bar chart)
+4. Wire it into the Training/Evaluation pages
+
+---
+
+## GAP 5 — No Confusion Matrix
+
+**What's there:** Nothing.
+
+**What's missing:**
+- No confusion matrix data in the pipeline result dict or `/models` endpoint
+- No confusion matrix component in the frontend
+- The Streamlit dashboard showed a confusion matrix heatmap after training
+
+**Fix needed:**
+1. Add `confusion_matrix` to `/models` endpoint response (compute from `test_metrics` or store during training)
+2. Build a `ConfusionMatrix` component (grid of colored cells with class labels on axes)
+3. Add to EvaluationPage
+
+---
+
+## GAP 6 — No ROC Curve
+
+**What's there:** Nothing.
+
+**What's missing:**
+- No ROC curve data (FPR/TPR arrays) in the pipeline result or any endpoint
+- No ROC curve chart component
+- The original Streamlit dashboard showed multi-class OvR ROC curves
+
+**Fix needed:**
+1. Compute and store `roc_curve_data: { class: {fpr: [], tpr: [], auc: float} }` during training
+2. Expose via `/models` or a dedicated `/evaluation/roc` endpoint
+3. Build a `ROCCurve` component using Recharts `LineChart`
+4. Add to EvaluationPage
+
+---
+
+## GAP 7 — Evaluation Page Has No Metrics Comparison
+
+**What's there:** Champion card, leaderboard table, radar chart, McNemar table, feature list.
+
+**What's missing:**
+- **Train vs Val vs Test split metric comparison** — the backend's `/models` endpoint returns `train_metrics`, `val_metrics`, and `test_metrics` but the EvaluationPage never reads or displays them
+- No train/val/test breakdown table showing overfitting indicators
+
+**Fix needed:**
+Add a "Split Performance" section to `EvaluationPage.jsx`:
+```jsx
+const trainM = modelsData.train_metrics || {}
+const testM  = modelsData.test_metrics  || {}
+// Render comparison table: metric | train | val | test
+```
+
+---
+
+## GAP 8 — No Model Card / Performance Report
+
+**What's there:** `src/evaluation/model_card.py` exists in the backend. `models/performance_report.html` is generated after training.
+
+**What's missing:**
+- No backend endpoint to fetch or serve the model card / performance report HTML
+- No viewer in the EvaluationPage
+- The original Streamlit app showed the full model card as rendered HTML
+
+**Fix needed:**
+1. Add `GET /evaluation/model-card` → returns `{ html: str }` (reads `models/performance_report.html`)
+2. Add a `ModelCardViewer` component that renders the HTML in a sandboxed `<iframe>` or `<div dangerouslySetInnerHTML>`
+3. Add to EvaluationPage as a collapsible section
+
+---
+
+## GAP 9 — No Leakage Report in Evaluation Page
+
+**What's there:** Leakage data IS in the Training page (as a collapsible section with the leakage table). The `/models` endpoint correctly returns `leakage_report`.
+
+**What's missing:**
+- The EvaluationPage reads `modelsData` but has **no leakage section at all**
+- This is a duplication gap — users going straight to Evaluation can't see the leakage report
+
+**Fix needed:** Add a leakage section to `EvaluationPage.jsx` reading from `modelsData.leakage_report`.
+
+---
+
+## GAP 10 — Workflow Stepper Missing
+
+**What's there:** A sidebar with nav links. Status indicators in the footer (dataset loaded, model trained, API connected).
+
+**What's missing:**
+- No top sticky stepper bar showing workflow progress (the numbered dots 1→2→3... from the Streamlit app)
+- No stage locking — users can navigate to Evaluation or Predictions without training, getting an empty state, but there's no visual lock/prerequisite indicator
+- No `completedStages` tracking in state
+
+**Fix needed:**
+- Add a `WorkflowStepper` component (horizontal numbered dot chain) in `Layout.jsx` above the main content
+- Add logic in `usePipeline` to track which stages are complete
+- Dim/lock nav items for stages that haven't been reached
+
+---
+
+## GAP 11 — State Lost on Browser Refresh
+
+**What's there:** All state lives in React Context (`PipelineProvider`). On startup, `prediction_service.try_load_from_disk()` runs and re-sets `state.is_trained = True` if models exist on disk.
+
+**What's missing:**
+- The frontend doesn't re-fetch results on mount if the backend says it's already trained. `refreshHealth()` is called but only fetches results if `health.pipeline_trained && !modelsData` — however, `health` itself is fetched async and by the time it resolves, the pages may already show empty states
+- On a hard refresh, `modelsData`, `hypothesisData`, and `comparisonData` are `null` even if the backend has results
+- There's no "rehydrate on load" effect that checks `/pipeline-status` on app start and auto-fetches all results if `trained: true`
+
+**Fix needed:**
+Add to `PipelineProvider`'s `useEffect` on mount:
+```js
+const s = await api.getPipelineStatus()
+setStatus(s)
+if (s.trained) {
+  Promise.all([api.getHypothesis(), api.getModels(), api.getComparison()])
+    .then(([h, m, c]) => { setHypothesisData(h); setModelsData(m); setComparisonData(c) })
+}
+```
+
+---
+
+## GAP 12 — Training Log Is Polling, Not Streaming
+
+**What's there:** `_startPolling()` polls `/pipeline-status` every 1500ms and shows the last 20 log entries.
+
+**What's issues:**
+- Log entries are batched (only last 20 shown, backfill on each poll)
+- 1.5s polling interval means up to 1.5s of visual lag on log updates
+- Training can run for several minutes; polling creates ~100+ HTTP requests unnecessarily
+
+**Original design called for:** Server-Sent Events (SSE) so log lines appear in real-time as the pipeline emits them.
+
+**Fix needed (optional but improves UX):**
+- Backend: Add `GET /pipeline-stream` that uses `StreamingResponse` with `text/event-stream` and pushes from `state.progress_log`
+- Frontend: Replace polling with `EventSource` in the Training page
+
+---
+
+## GAP 13 — Monitoring Page Uses Only One File (No Reference CSV)
+
+**What's there:** Monitoring page uploads one "production" CSV and compares it to the original training data (which the backend reads from `state.upload_path`).
+
+**What's missing:**
+- The original Streamlit dashboard allowed uploading **both** a reference CSV and a production CSV independently
+- Currently if the user uploads a new dataset and retrains, `state.upload_path` changes, breaking old drift comparisons
+- No way to pin a specific reference dataset
+
+**Fix needed:** Add a second file input on the Monitoring page for "Reference dataset (baseline)" with a fallback to the training data.
+
+---
+
+## GAP 14 — Tailwind Color Palette Is Wrong for the Design System
+
+**What's there:** `tailwind.config.js` defines `brand` (indigo/purple) and `surface` (dark navy).
+
+**What's missing:** The original Streamlit app used:
+- `#4a90d9` as primary blue (not indigo `#6366f1`)
+- `#38a169` as success green
+- `#d97706` as warning amber  
+- `#7c6fc9` as purple accent
+- `#0c0e14` as background (not `#0f0f1a`)
+- `JetBrains Mono` for code/values
+
+The current tailwind palette uses a **different blue-purple family** which is close but doesn't match the original brand colors. Charts use `#6366f1` as primary instead of `#4a90d9`.
+
+**Fix needed:** Update `tailwind.config.js` to add exact hex values and import JetBrains Mono in `index.css`.
+
+---
+
+## GAP 15 — `/models` Endpoint Missing `leakage_report` — Backend Bug
+
+**What's there:** The `get_models()` handler tries to call `leakage_report.to_dataframe()` and read `.blocked`, `.warnings`, `.clean` attributes.
+
+**What's wrong:** The `training_pipeline.py`'s `_build_result()` method does **not include `leakage_report`** in the returned dict. The pipeline stores `self.leakage_report` internally but it's never put into the result dict. So `r.get("leakage_report")` is always `None`, meaning leakage data in the Training page is always blank.
+
+**Fix needed:** In `training_pipeline.py`, add `"leakage_report": self.leakage_report` to the `_build_result()` return dict. Also verify that `leakage_report` has the `.blocked`, `.warnings`, `.clean`, `.to_dataframe()` interface.
+
+---
+
+## GAP 16 — `@tanstack/react-query` and `zustand` Are Not Used
+
+**What's there:** `axios` is imported in `package.json` but never used (all requests use `fetch`). `@tanstack/react-query` and `zustand` are not in `package.json` at all.
+
+**What's impact:**
+- No request caching, no automatic refetch-on-focus, no loading/error state management per query
+- Manual state in `PipelineProvider` is verbose and duplicates React Query's job
+- Not a blocker but makes caching, background refetching, and stale data harder to manage
+
+**Fix needed (optional):** Add `@tanstack/react-query` as a dependency and migrate `api.js` calls to `useQuery`/`useMutation` hooks for the results endpoints.
+
+---
+
+## Quick-Fix Priority Order
+
+| Priority | Gap | Effort |
+|----------|-----|--------|
+| 🔴 P0 | GAP 1 — Add Predictions route + nav | 5 min |
+| 🔴 P0 | GAP 2 — Build Model Registry page + endpoint | 2 hrs |
+| 🔴 P0 | GAP 15 — Leakage report missing from pipeline result | 10 min |
+| 🔴 P0 | GAP 11 — State lost on refresh | 30 min |
+| 🟠 P1 | GAP 4 — SHAP chart | 3 hrs |
+| 🟠 P1 | GAP 5 — Confusion matrix | 2 hrs |
+| 🟠 P1 | GAP 6 — ROC curve | 2 hrs |
+| 🟠 P1 | GAP 3 — Artifact download endpoints | 1 hr |
+| 🟡 P2 | GAP 7 — Train/val/test metric table in Evaluation | 45 min |
+| 🟡 P2 | GAP 8 — Model card viewer | 1 hr |
+| 🟡 P2 | GAP 9 — Leakage section in Evaluation page | 20 min |
+| 🟡 P2 | GAP 10 — Workflow stepper | 2 hrs |
+| 🟢 P3 | GAP 12 — SSE streaming logs | 2 hrs |
+| 🟢 P3 | GAP 13 — Two-file monitoring upload | 45 min |
+| 🟢 P3 | GAP 14 — Tailwind color alignment | 30 min |
+| 🟢 P3 | GAP 16 — Add react-query | 3 hrs |
+these are the gaps in my present project zip file 
+so make the updates accordingly and give me the updated zip file in one go and all the gaps must be filled or corrected 
