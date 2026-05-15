@@ -1,69 +1,54 @@
-I need you to UPDATE THE SYSTEM by fixing the issues described below.
-Please implement the changes directly and explain briefly what you changed.
+Create a professional PowerPoint presentation for the following project:
 
-=====================================
-PROBLEM 1 — UI TEXT LOOKS TOO GREY
-=====================================
+Title:
+Reusable AutoML Classification Framework with Explainability
 
-Across my entire Streamlit UI, most text appears grey and low-contrast:
-- Section descriptions
-- Helper/instructional text
-- Sidebar navigation labels
-- Tab labels
-- Status indicators
+Goal:
+Design the PPT in a storytelling format similar to consulting-style decks (like PCI DSS storyboard style):
+SITUATION → COMPLICATION → QUESTION → ANSWER → ARCHITECTURE → FLOW → KPIs → IMPACT
 
-This makes the UI look dim and slightly hard to read, especially on a dark background.
-Important text does not stand out clearly from secondary or inactive text.
+Requirements:
 
-TASK:
-- Adjust the UI so general readable text appears slightly whiter/brighter.
-- Maintain a professional dark-theme look (not pure white everywhere).
-- Keep disabled/placeholder text dimmer than regular content.
-- Apply changes globally instead of per-component styling.
+1. Slide Structure:
+- Slide 1: Title slide (project name, team, date)
+- Slide 2: Situation (current inefficiencies in ML model building)
+- Slide 3: Complication (repetition, lack of explainability, SR 11-7 issues)
+- Slide 4: Question (why are we rebuilding models every time?)
+- Slide 5: Solution (AutoML framework overview)
+- Slide 6: Architecture (modules and components)
+- Slide 7: Core system layers (automation + explainability + governance)
+- Slide 8: End-to-end automated workflow
+- Slide 9: Implementation phases
+- Slide 10: KPIs / evaluation metrics
+- Slide 11: SR 11-7 compliance features
+- Slide 12: Business impact
+- Slide 13: Thank you
 
-Implement this using Streamlit-compatible global styling or theming.
-Avoid hacky per-widget fixes.
+2. Design Style:
+- Use clean white/light theme (consulting style)
+- Minimal text per slide (max 4–5 bullet points)
+- Highlight key numbers (e.g., 60–70%, 4–8 weeks, etc.)
+- Use bold headings and short impactful sentences
+- Add icons or diagrams where possible
 
-=====================================
-PROBLEM 2 — MODEL CARD HTML EXPORT IS BROKEN
-=====================================
+3. Content Expectations:
+- Emphasize:
+  - Reusability
+  - Explainability (SHAP)
+  - Automation (AutoML)
+  - SR 11-7 compliance (model cards, audit logs, validation)
+- Include measurable KPIs
+- Maintain business + technical balance
 
-The Model Card is generated using Markdown:
-- In the UI preview, it looks fine.
-- When downloaded as HTML and opened in a browser, it shows raw Markdown:
-  - Headings like ## are visible
-  - Tables show | characters
-  - Code formatting is not rendered
+4. Tone:
+- Sharp, executive-level storytelling
+- Clear problem → gap → solution → impact flow
 
-At the same time, the Performance Report HTML is styled perfectly and looks professional.
+5. Output Format:
+- Provide slide-by-slide content
+- Include headings + bullet points for each slide
+- Suggest visuals or diagrams where needed
 
-This creates inconsistency and makes the Model Card feel unfinished.
-
-ROOT CAUSE CONTEXT:
-- Model Card HTML is currently produced by manually manipulating Markdown text (regex-style or direct write).
-- The Performance Report uses real HTML generation and CSS styling.
-
-TASK:
-- Fix the backend so Model Card HTML is generated properly and matches the quality of the Performance Report.
-- Convert Markdown to real HTML using a correct rendering approach.
-- Wrap the result in a styled HTML template.
-- Ensure tables, headings, lists, and code blocks render correctly.
-- Do NOT regenerate the model card inside the UI.
-
-ARCHITECTURAL RULES:
-- Backend generates Markdown + HTML once after training
-- UI only previews Markdown and downloads HTML
-- Do not change existing Performance Report logic
-- Keep changes minimal and clean
-
-Also add some graphs in the performance report to make it look good
-=====================================
-WHAT I EXPECT FROM YOU
-=====================================
-
-1. Identify exactly where to update UI styling and apply global improvements.
-2. Update Model Card HTML generation so downloaded Model Cards render correctly.
-3. Provide the updated code where changes are needed.
-4. Briefly explain what was changed and why (short explanation).
-
-Please make the updates directly rather than just suggesting ideas.
+Optional:
+- Add speaker notes for each slide
+- Suggest icons or visual elements
